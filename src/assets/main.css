@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+.p-toast {
+  width: 420px;        /* kerakli uzunlik */
+  max-width: 90vw;     /* mobil uchun */
+}
