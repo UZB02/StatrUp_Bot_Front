@@ -68,9 +68,6 @@
         </label>
      <InputNumber
   v-model="form.price"
-  mode="currency"
-  currency="UZS"
-  locale="uz-UZ"
   class="w-full"
   placeholder="0"
   required

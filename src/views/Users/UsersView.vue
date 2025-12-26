@@ -115,7 +115,7 @@ watch(search, (val) => {
   timeout = setTimeout(() => {
     if (!val) return getUsers();
     findUser(val);
-  }, 500);
+  }, 1200);
 });
 
 /* 🔹 FIND USER */

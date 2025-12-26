@@ -20,12 +20,16 @@
     <StatsChart :loading="loading" :chartData="chartData" />
 
     <!-- LATEST TABLE -->
-    <LatestTable
-      :loading="loading"
-      :latest="latest"
-      :format="format"
-      :formatDate="formatDate"
-    />
+  <LatestTable
+  :loading="loading"
+  :latest="latest"
+  :format="format"
+  :formatDate="formatDate"
+  :total="total"
+  :rows="limit"
+  @page="onPage"
+/>
+
   </div>
 </template>
 
@@ -86,6 +90,12 @@ const chartData = ref({
   ],
 });
 
+/* PAGINATION (LATEST TABLE) */
+const page = ref(1);
+const limit = ref(10);
+const total = ref(0);
+
+
 /* HELPERS */
 const format = (n) => new Intl.NumberFormat("uz-UZ").format(n) + " so‘m";
 const formatDate = (d) => new Date(d).toLocaleDateString("uz-UZ");
@@ -100,6 +110,9 @@ const params = () => {
     to: filters.value.to ? filters.value.to.toISOString() : null,
     filial: filters.value.filial,
     product: filters.value.product,
+      // 🔹 pagination
+    page: page.value,
+    limit: limit.value,
   };
   return p;
 };
@@ -221,10 +234,15 @@ const loadStats = async () => {
 
 const loadLatest = async () => {
   try {
-    const { data } = await api.get("/dashboard/latest", { params: params() });
-    latest.value = data.map(tx => {
-      const productNames = tx.items?.map(i => i.product?.name).join(", ");
+    const { data } = await api.get("/dashboard/latest", {
+      params: params(), // page va limit backendga boradi
+    });
+
+    // data.data => tranzaksiyalar, data.pagination => total
+    latest.value = data.data.map((tx) => {
+      const productNames = tx.items?.map((i) => i.product?.name).join(", ");
       const totalAmount = tx.items?.reduce((sum, i) => sum + i.amount, 0);
+
       return {
         ...tx,
         productName: productNames || "",
@@ -232,10 +250,20 @@ const loadLatest = async () => {
         filialName: tx.filial?.name || "",
       };
     });
+
+    // pagination uchun total qaytariladi
+    total.value = data.pagination.total;
   } catch (err) {
     console.error("Latest load error:", err);
   }
 };
+
+const onPage = (e) => {
+  page.value = e.page + 1; // PrimeVue 0-based
+  limit.value = e.rows;
+  loadLatest();
+};
+
 
 /* RELOAD ALL DATA */
 const reloadAll = async () => {
@@ -249,25 +277,91 @@ const reloadAll = async () => {
   }
 };
 
-/* EXCEL EXPORT */
 const exportExcel = async () => {
-  const rows = latest.value.map((i) => ({
-    Sana: formatDate(i.createdAt),
-    Foydalanuvchi: i.user?.fullname,
-    Mahsulot: i.productName,
-    Filial: i.filialName,
-    Turi: i.type === 'earn' ? 'Tushum' : 'Xarajat',
-    Summa: i.amount,
-  }));
-  const XLSX = await import("xlsx");
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-  XLSX.writeFile(wb, "transactions.xlsx");
+  try {
+    // 🔹 Hamma ma’lumotni olish uchun limit va page’ni olib tashlaymiz
+    const { data } = await api.get("/dashboard/latest", {
+      params: {
+        ...params(),
+        page: 1,
+        limit: 1000000, // juda katta limit — barcha ma’lumotlarni olish uchun
+      },
+    });
+
+    const rows = data.data.map((i, index) => ({
+      "№": index + 1,
+      "Sana": formatDate(i.createdAt),
+      "Foydalanuvchi": i.user?.fullname || "-",
+      "Mahsulot": i.items?.map(it => it.product?.name).join(", ") || "",
+      "Filial": i.filial?.name || "",
+      "Turi": i.type === "earn" ? "Tushum" : "Xarajat",
+      "Summa (so'm)": i.items?.reduce((sum, it) => sum + it.amount, 0) || 0,
+    }));
+
+    const XLSX = await import("xlsx");
+
+    const ws = XLSX.utils.json_to_sheet(rows, { origin: "A2", skipHeader: true });
+
+    const headers = Object.keys(rows[0]);
+    XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
+
+    // Header bold va markazlashtirish
+    headers.forEach((_, colIndex) => {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+      ws[cellAddress].s = {
+        font: { bold: true },
+        alignment: { horizontal: "center" },
+      };
+    });
+
+    // Column widths
+    ws["!cols"] = [
+      { wch: 5 }, { wch: 14 }, { wch: 25 }, { wch: 22 },
+      { wch: 20 }, { wch: 12 }, { wch: 16 },
+    ];
+
+    // Freeze header
+    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+
+    // Jami hisoblash
+    let totalTushum = 0;
+    let totalXarajat = 0;
+    rows.forEach(row => {
+      if (row.Turi === "Tushum") totalTushum += row["Summa (so'm)"];
+      else totalXarajat += row["Summa (so'm)"];
+    });
+
+    // Jami qatorlarini qo‘shish
+    const totalRowIndex = rows.length + 2;
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "Jami Tushum", totalTushum]], { origin: `A${totalRowIndex}` });
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "Jami Xarajat", totalXarajat]], { origin: `A${totalRowIndex + 1}` });
+
+    // Summa ustunlarini raqam formatida ko‘rsatish
+    [totalRowIndex, totalRowIndex + 1].forEach(rIndex => {
+      const sumCellAddress = XLSX.utils.encode_cell({ r: rIndex - 1, c: 6 });
+      if (ws[sumCellAddress]) {
+        ws[sumCellAddress].s = {
+          numFmt: "#,##0 \"so'm\"",
+          alignment: { horizontal: "right" },
+          font: { bold: true },
+        };
+      }
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+
+    XLSX.writeFile(wb, "transactions.xlsx");
+  } catch (err) {
+    console.error("Export Excel error:", err);
+  }
 };
 
 /* WATCH FILTERS */
-watch(filters, reloadAll, { deep: true });
+watch(filters, async () =>{
+  page.value = 1;
+  await reloadAll()
+} , { deep: true });
 /* WATCH FILIAL FILTER */
 watch(() => filters.value.filial, async () => {
   await loadProducts(); // filial o'zgarganda productlarni yangilash

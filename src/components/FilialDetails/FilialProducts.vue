@@ -69,7 +69,7 @@
         <Column field="price" header="Narx" class="w-1/6">
           <template #body="{ data }">
             <div class="text-right">
-              <p class="font-bold text-green-600 text-lg">{{ formatPrice(data.price) }}</p>
+              <p class="font-bold text-green-600 text-lg">{{ formatCurrency(data.price) }}</p>
               <p class="text-xs text-gray-500">{{ data.unit }} uchun</p>
             </div>
           </template>
@@ -86,7 +86,7 @@
 
         <Column header="Amallar" class="w-1/6">
           <template #body="{ data }">
-            <div class="flex gap-2 justify-end">
+            <div class="flex gap-1 ">
               <Button 
                 icon="pi pi-pencil" 
                 @click="edit(data)"
@@ -133,6 +133,7 @@
 <script setup>
 import { ref } from "vue";
 import api from "@/utils/api";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 import Button from "primevue/button";
 import DataTable from "primevue/datatable";
@@ -170,9 +171,6 @@ const remove = async (id) => {
     console.error("O'chirishda xato:", error);
   }
 };
-
-const formatPrice = (price) =>
-  `$${parseFloat(price).toFixed(2)}`;
 </script>
 
 <style scoped>

@@ -3,28 +3,52 @@
     <!-- Header -->
     <div class="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4">
       <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md">
+        <div
+          class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md"
+        >
           <i class="pi pi-chart-bar"></i>
         </div>
-        <h3 class="text-lg font-semibold text-gray-900">Oxirgi tranzaksiyalar</h3>
+        <h3 class="text-lg font-semibold text-gray-900">
+          Oxirgi tranzaksiyalar
+        </h3>
       </div>
     </div>
 
     <!-- Content -->
     <div class="p-6">
-      <Skeleton v-if="loading" height="220px" borderRadius="8px" />
+      <!-- Loading -->
+      <Skeleton
+        v-if="loading"
+        height="220px"
+        borderRadius="8px"
+      />
 
+      <!-- Table -->
       <div v-else class="overflow-x-auto">
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-200">
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Xodim</th>
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Sana</th>
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Foydalanuvchi</th>
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Mahsulotlar</th>
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Filial</th>
-              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">Turi</th>
-              <th class="pb-3 text-right text-xs font-semibold uppercase text-gray-600">Summa</th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Xodim
+              </th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Sana
+              </th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Foydalanuvchi
+              </th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Mahsulotlar
+              </th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Filial
+              </th>
+              <th class="pb-3 text-left text-xs font-semibold uppercase text-gray-600">
+                Turi
+              </th>
+              <th class="pb-3 text-right text-xs font-semibold uppercase text-gray-600">
+                Summa
+              </th>
             </tr>
           </thead>
 
@@ -48,10 +72,12 @@
               <!-- User -->
               <td class="py-4 text-sm font-medium text-gray-900">
                 <div class="flex items-center gap-2">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
-                    {{ getInitials(t.user?.fullname ? t.user?.fullname : 'Y') }}
+                  <div
+                    class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white"
+                  >
+                    {{ getInitials(t.user?.fullname || "Y") }}
                   </div>
-                  {{ t.user?.fullname ? t.user?.fullname : 'O\'chirilgan' }}
+                  {{ t.user?.fullname || "O'chirilgan" }}
                 </div>
               </td>
 
@@ -60,17 +86,17 @@
                 <div class="space-y-1">
                   <div
                     v-for="item in t.items"
-                    :key="item.product._id"
+                    :key="item.product?._id"
                     class="text-xs"
                   >
-                    {{ item.product.name }} × {{ item.quantity }}
+                    {{ item.product?.name }} × {{ item.quantity }}
                   </div>
                 </div>
               </td>
 
               <!-- Filial -->
               <td class="py-4 text-sm text-gray-600">
-                {{ t.filial?.name }}
+                {{ t.filial?.name || "-" }}
               </td>
 
               <!-- Type -->
@@ -92,19 +118,34 @@
               <!-- Amount -->
               <td class="py-4 text-right font-semibold">
                 <span
-                  :class="t.type === 'earn' ? 'text-green-600' : 'text-red-600'"
+                  :class="t.type === 'earn'
+                    ? 'text-green-600'
+                    : 'text-red-600'"
                 >
                   {{ t.type === 'earn' ? '+' : '-' }}
-                  {{ format(t.totalAmount) }}
+                  {{ format(t.amount ?? t.totalAmount ?? 0) }}
                 </span>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div v-if="!latest?.length" class="py-12 text-center text-gray-500">
+        <!-- Empty -->
+        <div
+          v-if="!latest?.length"
+          class="py-12 text-center text-gray-500"
+        >
           Hozircha tranzaksiyalar yo‘q
         </div>
+
+        <!-- Pagination -->
+        <Paginator
+          :rows="rows"
+          :totalRecords="total"
+          :rowsPerPageOptions="[5, 10, 20]"
+          class="mt-6"
+          @page="$emit('page', $event)"
+        />
       </div>
     </div>
   </div>
@@ -112,16 +153,39 @@
 
 <script setup>
 import Skeleton from "primevue/skeleton";
+import Paginator from "primevue/paginator";
 
 defineProps({
-  loading: Boolean,
-  latest: Array,
-  format: Function,
-  formatDate: Function,
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  latest: {
+    type: Array,
+    default: () => [],
+  },
+  format: {
+    type: Function,
+    required: true,
+  },
+  formatDate: {
+    type: Function,
+    required: true,
+  },
+  total: {
+    type: Number,
+    default: 0,
+  },
+  rows: {
+    type: Number,
+    default: 10,
+  },
 });
 
+defineEmits(["page"]);
+
 const getInitials = (fullname = "") => {
-  const parts = fullname.split(" ");
+  const parts = fullname.trim().split(" ");
   return parts.length >= 2
     ? (parts[0][0] + parts[1][0]).toUpperCase()
     : fullname.slice(0, 2).toUpperCase();

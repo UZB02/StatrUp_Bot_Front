@@ -76,7 +76,7 @@ const login = async () => {
     sessionStorage.setItem("admin", JSON.stringify(res.data.admin));
 
     // Rol bo‘yicha yo‘naltirish
-    const role = res.data.admin.role;
+    const role = res.data?.admin?.role;
     if (role === "supperadmin") {
       router.push("/");       // Superadmin uchun bosh sahifa
     } else if (role === "admin") {

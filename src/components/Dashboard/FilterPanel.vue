@@ -56,7 +56,7 @@
       </div>
 
       <!-- DATE (FROM) -->
-      <!-- <div v-if="showFrom" class="flex flex-col gap-2">
+      <div v-if="showFrom" class="flex flex-col gap-2">
         <label class="text-sm font-medium text-slate-700">
           {{ filters.period === "day" ? "Kun" : "Boshlanish sanasi" }}
         </label>
@@ -65,7 +65,7 @@
           dateFormat="yy-mm-dd"
           showIcon
         />
-      </div> -->
+      </div>
 
       <!-- TO DATE (FAQAT YEAR/MONTH/WEEK) -->
       <!-- <div v-if="showTo" class="flex flex-col gap-2">
