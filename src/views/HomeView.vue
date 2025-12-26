@@ -100,22 +100,67 @@ const total = ref(0);
 const format = (n) => new Intl.NumberFormat("uz-UZ").format(n) + " so‘m";
 const formatDate = (d) => new Date(d).toLocaleDateString("uz-UZ");
 
-/* BUILD PARAMS */
+/* BUILD PARAMS (FIXED & SAFE) */
 const params = () => {
-  const p = {
-    period: filters.value.period,
+  let from = filters.value.from ? new Date(filters.value.from) : null;
+  let to = filters.value.to ? new Date(filters.value.to) : null;
+
+  const period = filters.value.period;
+
+  // ===== DAY (1 kun to‘liq) =====
+  if (period === "day" && from) {
+    from.setHours(0, 0, 0, 0);
+
+    to = new Date(from);
+    to.setHours(23, 59, 59, 999);
+  }
+
+  // ===== WEEK (ISO week: Du → Ya) =====
+  else if (period === "week" && from) {
+    const day = from.getDay(); // 0 (Yak) - 6
+    const diffToMonday = (day + 6) % 7;
+
+    from.setDate(from.getDate() - diffToMonday);
+    from.setHours(0, 0, 0, 0);
+
+    to = new Date(from);
+    to.setDate(from.getDate() + 6);
+    to.setHours(23, 59, 59, 999);
+  }
+
+  // ===== MONTH =====
+  else if (period === "month") {
+    from = new Date(filters.value.year, filters.value.month - 1, 1);
+    from.setHours(0, 0, 0, 0);
+
+    to = new Date(filters.value.year, filters.value.month, 0);
+    to.setHours(23, 59, 59, 999);
+  }
+
+  // ===== YEAR =====
+  else if (period === "year") {
+    from = new Date(filters.value.year, 0, 1);
+    from.setHours(0, 0, 0, 0);
+
+    to = new Date(filters.value.year, 11, 31);
+    to.setHours(23, 59, 59, 999);
+  }
+
+  return {
+    period,
     year: filters.value.year,
     month: filters.value.month,
-    from: filters.value.from ? filters.value.from.toISOString() : null,
-    to: filters.value.to ? filters.value.to.toISOString() : null,
+    from: from ? from.toISOString() : null,
+    to: to ? to.toISOString() : null,
     filial: filters.value.filial,
     product: filters.value.product,
-      // 🔹 pagination
+
+    // 🔹 pagination
     page: page.value,
     limit: limit.value,
   };
-  return p;
 };
+
 
 /* API LOAD FUNCTIONS */
 const loadFilials = async () => {
@@ -145,6 +190,7 @@ const loadSummary = async () => {
   try {
     const { data } = await api.get("/dashboard/summary", { params: params() });
     summary.value = data;
+    console.log(summary.value);
   } catch (err) {
     console.error("Summary load error:", err);
   }
@@ -153,7 +199,7 @@ const loadSummary = async () => {
 const loadStats = async () => {
   try {
     const { data } = await api.get("/dashboard/stats", { params: params() });
-
+console.log(data);
     const period = filters.value.period;
 
     /* ===== YEAR ===== */
@@ -203,11 +249,12 @@ const loadStats = async () => {
     }
 
     /* ===== DAY (1 KUN) ===== */
-    else if (period === "day") {
-      chartData.value.labels = ["Tanlangan kun"];
-      chartData.value.datasets[0].data = [data[0]?.earn || 0];
-      chartData.value.datasets[1].data = [data[0]?.spend || 0];
-    }
+  else if (period === "day") {
+  chartData.value.labels = data.map(i => i.label);
+  chartData.value.datasets[0].data = data.map(i => i.earn);
+  chartData.value.datasets[1].data = data.map(i => i.spend);
+}
+
 
     /* ===== WEEK ===== */
     else if (period === "week") {

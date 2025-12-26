@@ -77,7 +77,7 @@ const login = async () => {
 
     // Rol bo‘yicha yo‘naltirish
     const role = res.data?.admin?.role;
-    if (role === "supperadmin") {
+    if (role === "superadmin") {
       router.push("/");       // Superadmin uchun bosh sahifa
     } else if (role === "admin") {
       router.push("/users");  // Admin uchun users sahifasi
