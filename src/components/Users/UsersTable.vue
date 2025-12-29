@@ -15,8 +15,15 @@
           </div>
         </template>
       </Column>
-
-      <Column field="phone" header="Telefon" />
+      <Column header="Telefon">
+        <template #body="{ data }">
+          <div class="flex items-center gap-2">
+            <span class="font-medium">+{{ data.phone }}</span>
+          </div>
+        </template>
+      </Column>
+<!-- 
+      <Column field="phone" header="Telefon" /> -->
       <Column header="Avto raqam">
         <template #body="{ data }">
           <div class="flex items-center gap-2">
