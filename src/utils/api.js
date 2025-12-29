@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://startupbot-cashback.onrender.com',
+  baseURL: 'https://startupbot-cashback.onrender.com/api',
   // baseURL: 'http://localhost:3000/api',
 })
 
