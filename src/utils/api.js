@@ -2,8 +2,8 @@
 import axios from 'axios'
 
 const api = axios.create({
-  // baseURL: 'https://education-backend-jxtk.onrender.com/api',
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://startupbot-cashback.onrender.com',
+  // baseURL: 'http://localhost:3000/api',
 })
 
 api.interceptors.request.use((config) => {

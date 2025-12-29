@@ -30,7 +30,15 @@
           <p class="text-sm font-semibold text-slate-900">{{ formatCurrency(product.price) }} / {{ product.unit }}</p>
         </div>
       </div>
-
+     <div class="space-y-1">
+       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Holat</p>
+       <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  :class="product.quantity <100 ? `bg-gradient-to-r from-red-600 to-red-400 h-2 rounded-full` : `bg-gradient-to-r from-green-600 to-green-400 h-2 rounded-full`" 
+                  :style="{ width: `${Math.min((product.quantity / 1000) * 100, 100)}%` }"
+                ></div>
+              </div>
+     </div>
       <!-- Discount highlight -->
       <div v-if="product.discount > 0" class="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-100">
         <span class="inline-flex items-center justify-center w-auto p-2 h-6 bg-red-500 text-white text-xs font-bold rounded">

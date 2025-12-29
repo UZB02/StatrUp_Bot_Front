@@ -4,11 +4,13 @@ import Dialog from "primevue/dialog";
 import Dropdown from "primevue/dropdown";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
+import { useToast } from "primevue/usetoast";
 
 import api from "@/utils/api";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useTransactionForm } from "@/composables/useTransactionForm";
 
+const toast = useToast();
 /* ========= Props & Emits ========= */
 const props = defineProps({
   modelValue: Boolean,
@@ -110,7 +112,17 @@ const save = async () => {
     visible.value = false;
     basket.value = [];
     reset();
-  } finally {
+  } catch (err){
+       const audio = new Audio("../../../error.mp3"); // noto‘g‘ri scan uchun ovoz
+    audio.play();
+  toast.add({
+  severity: "error",
+  summary: "Xatolik",
+  detail: `${err.response?.data?.message || err.message}`,
+  life: 3000,
+});
+  }
+  finally {
     isLoading.value = false;
   }
 };
@@ -255,4 +267,5 @@ const save = async () => {
       </div>
     </div>
   </Dialog>
+   <Toast />
 </template>

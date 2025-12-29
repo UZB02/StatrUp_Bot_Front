@@ -1,7 +1,7 @@
 <template>
-  <div class="p-6 space-y-6">
+  <div class="">
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold">Filiallar</h1>
       <Button
         label="Filial qo‘shish"

@@ -190,7 +190,7 @@ const loadSummary = async () => {
   try {
     const { data } = await api.get("/dashboard/summary", { params: params() });
     summary.value = data;
-    console.log(summary.value);
+    // console.log(summary.value);
   } catch (err) {
     console.error("Summary load error:", err);
   }
@@ -199,7 +199,7 @@ const loadSummary = async () => {
 const loadStats = async () => {
   try {
     const { data } = await api.get("/dashboard/stats", { params: params() });
-console.log(data);
+// console.log(data);
     const period = filters.value.period;
 
     /* ===== YEAR ===== */
@@ -246,14 +246,34 @@ console.log(data);
       chartData.value.labels = labels;
       chartData.value.datasets[0].data = earnData;
       chartData.value.datasets[1].data = spendData;
+      console.log(data);
     }
 
-    /* ===== DAY (1 KUN) ===== */
-  else if (period === "day") {
-  chartData.value.labels = data.map(i => i.label);
+/* ===== DAY (1 KUN) ===== */
+else if (period === "day") {
+  chartData.value.labels = data.map(i => {
+    // Bugungi sana
+    const today = new Date();
+    let [hours, minutes] = i.label.split(":").map(Number);
+
+    // UTC → O‘zbekiston vaqti (+5)
+    hours += 5;
+
+    // Agar soat 24 dan oshsa, keyingi kun
+    if (hours >= 24) {
+      hours -= 24;
+      today.setDate(today.getDate() + 1);
+    }
+
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
+
+    return date.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
+  });
+
   chartData.value.datasets[0].data = data.map(i => i.earn);
   chartData.value.datasets[1].data = data.map(i => i.spend);
 }
+
 
 
     /* ===== WEEK ===== */

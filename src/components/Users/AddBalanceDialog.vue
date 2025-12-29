@@ -4,6 +4,7 @@ import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import { useToast } from "primevue/usetoast";
 import api from '@/utils/api'
 
 /* ================= STATE ================= */
@@ -14,7 +15,7 @@ const basket = ref([])
 const search = ref('')
 const productDialog = ref(false)
 const isLoading = ref(false)
-
+const toast = useToast();
 /* ================= PROPS / EMITS ================= */
 const props = defineProps({
   modelValue: Boolean,
@@ -110,6 +111,14 @@ const save = async () => {
     visible.value = false
     reset()
   } catch (err) {
+       const audio = new Audio("../../../error.mp3"); // noto‘g‘ri scan uchun ovoz
+    audio.play();
+  toast.add({
+  severity: "error",
+  summary: "Xatolik",
+  detail: `${err.response?.data?.message || err.message}`,
+  life: 3000,
+});
     console.error('Transaction error:', err)
   } finally {
     isLoading.value = false
@@ -190,4 +199,5 @@ const reset = () => {
       </div>
     </div>
   </Dialog>
+   <Toast />
 </template>

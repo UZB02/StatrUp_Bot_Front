@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4">
+  <div class="">
     <!-- Header + Search -->
     <UsersHeader
       v-model:modelValue="search"
@@ -8,12 +8,14 @@
 
     <!-- 🔹 QR / USB scanner input -->
     <div class="my-4">
-      <InputText
-        v-model="scanInput"
-        placeholder="QR kodni skanerlang"
-        class="w-full"
-        :inputRef="scanInputEl"
-      />
+     <InputText
+  v-model="scanInput"
+  placeholder="QR kodni skanerlang"
+  class="w-full"
+  :readonly="isScanning"
+  ref="scanInputEl"
+/>
+
     </div>
 
     <!-- User table -->
@@ -80,6 +82,8 @@ const users = ref([]);
 const loading = ref(false);
 const search = ref("");
 const scanInput = ref("");
+const isScanning = ref(false);
+
 const scanInputEl = ref(null); // ✅ InputText ref
 
 const editDialog = ref(false);
@@ -158,26 +162,34 @@ const findUser = async (query, type = null) => {
 
 /* 🔹 AUTO SCAN (Enter’siz) */
 watch(scanInput, async (val) => {
-  if (!val) return;
+  if (!val || isScanning.value) return;
+
+  isScanning.value = true;
+
   try {
-    const parsed = JSON.parse(val);
-    if (!parsed.userId) throw new Error("userId topilmadi");
-    await findUser(parsed.userId, "userId");
-  } catch {
-       const audio = new Audio("/error.mp3"); // noto‘g‘ri scan uchun ovoz
-    audio.play();
-    toast.add({
-      severity: "error",
-      summary: "Xatolik",
-      detail: "QR kod noto‘g‘ri formatda",
-      life: 3000,
-    });
-  } finally {
+    // 🔥 darhol inputni tozalaymiz (JSON ko‘rinmaydi)
     scanInput.value = "";
+
+    const parsed = JSON.parse(val.trim());
+
+    if (!parsed.userId) throw new Error("userId yo‘q");
+
+    // 🔥 faqat userId ni yozamiz
+    await nextTick();
+    scanInput.value = parsed.userId;
+
+    await findUser(parsed.userId, "userId");
+
+  } catch (err) {
+    // new Audio("/error.mp3").play();
+  } finally {
+    isScanning.value = false;
     await nextTick();
     scanInputEl.value?.focus();
   }
 });
+
+
 
 /* ✏️ EDIT */
 const openEdit = (user) => {

@@ -74,7 +74,7 @@ function navigate(path) {
               ? 'bg-blue-100 text-blue-600 font-semibold'
               : 'hover:bg-blue-50'
           ]"
-          v-tooltip="isDesktop.value ? menuItem.label : null"
+          v-tooltip="collapsed ? menuItem.label : null"
           @click="navigate(menuItem.to)"
         />
       </li>
