@@ -18,6 +18,18 @@
 
     <!-- CHART -->
     <StatsChart :loading="loading" :chartData="chartData" />
+    <!-- PRODUCT COMPARISON -->
+<ProductComparisonChart
+  v-if="filters.filial"
+  :loading="loading"
+  :chartData="productChartData"
+/>
+<ProductGrowth
+  v-if="productGrowth.length"
+  :data="productGrowth"
+/>
+
+
 
     <!-- LATEST TABLE -->
   <LatestTable
@@ -42,6 +54,8 @@ import FilterPanel from "@/components/Dashboard/FilterPanel.vue";
 import SummaryGrid from "@/components/Dashboard/SummaryGrid.vue";
 import StatsChart from "@/components/Dashboard/StatsChart.vue";
 import LatestTable from "@/components/Dashboard/LatestTable.vue";
+import ProductComparisonChart from "@/components/Dashboard/ProductComparisonChart.vue"
+import ProductGrowth from "@/components/Dashboard/ProductGrowth.vue"
 
 /* STATE */
 const loading = ref(true);
@@ -89,6 +103,26 @@ const chartData = ref({
     { label: "Xarajat", backgroundColor: "#ef4444", data: [] },
   ],
 });
+
+/* PRODUCT COMPARISON CHART */
+const productChartData = ref({
+  labels: [],
+  datasets: [
+    {
+      label: "Tushum",
+      backgroundColor: "#3b82f6",
+      data: [],
+    },
+    {
+      label: "Xarajat",
+      backgroundColor: "#f97316",
+      data: [],
+    },
+  ],
+});
+
+
+const productGrowth = ref([]);
 
 /* PAGINATION (LATEST TABLE) */
 const page = ref(1);
@@ -159,6 +193,23 @@ const params = () => {
     page: page.value,
     limit: limit.value,
   };
+};
+
+const loadProductGrowth = async () => {
+  if (!filters.value.filial) {
+    productGrowth.value = [];
+    return;
+  }
+
+  try {
+    const { data } = await api.get("/dashboard/product-growth", {
+      params: params(),
+    });
+
+    productGrowth.value = data;
+  } catch (err) {
+    console.error("Product growth load error:", err);
+  }
 };
 
 
@@ -325,24 +376,35 @@ const loadLatest = async () => {
   }
 };
 
+const loadProductComparison = async () => {
+  if (!filters.value.filial) {
+    productChartData.value.labels = [];
+    productChartData.value.datasets[0].data = [];
+    productChartData.value.datasets[1].data = [];
+    return;
+  }
+
+  try {
+    const { data } = await api.get("/dashboard/product-comparison", {
+      params: params(),
+    });
+
+    productChartData.value.labels = data.map(i => i.productName);
+    productChartData.value.datasets[0].data = data.map(i => i.earn);
+    productChartData.value.datasets[1].data = data.map(i => i.spend);
+
+  } catch (err) {
+    console.error("Product comparison load error:", err);
+  }
+};
+
+
 const onPage = (e) => {
   page.value = e.page + 1; // PrimeVue 0-based
   limit.value = e.rows;
   loadLatest();
 };
 
-
-/* RELOAD ALL DATA */
-const reloadAll = async () => {
-  loading.value = true;
-  try {
-    await Promise.all([loadSummary(), loadStats(), loadLatest()]);
-  } catch (err) {
-    console.error("Dashboard load error:", err);
-  } finally {
-    loading.value = false;
-  }
-};
 
 const exportExcel = async () => {
   try {
@@ -424,16 +486,35 @@ const exportExcel = async () => {
   }
 };
 
+/* RELOAD ALL DATA */
+const reloadAll = async () => {
+  loading.value = true;
+  try {
+    await Promise.all([
+      loadSummary(),
+      loadStats(),
+      loadLatest(),
+      loadProductComparison(),
+      loadProductGrowth(),
+    ]);
+  } catch (err) {
+    console.error("Dashboard load error:", err);
+  } finally {
+    loading.value = false;
+  }
+};
+
 /* WATCH FILTERS */
-watch(filters, async () =>{
+watch(filters, async (newFilters, oldFilters) => {
   page.value = 1;
-  await reloadAll()
-} , { deep: true });
-/* WATCH FILIAL FILTER */
-watch(() => filters.value.filial, async () => {
-  await loadProducts(); // filial o'zgarganda productlarni yangilash
-  await reloadAll();    // dashboard ma'lumotlarini yangilash
-});
+
+
+    await loadProducts();
+
+  // Dashboard ma'lumotlarini yangilash
+  await reloadAll();
+}, { deep: true });
+
 
 /* ON MOUNT */
 onMounted(async () => {
