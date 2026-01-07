@@ -18,7 +18,7 @@
       <Column header="Telefon">
         <template #body="{ data }">
           <div class="flex items-center gap-2">
-            <span class="font-medium">+{{ data.phone }}</span>
+            <span class="font-medium">{{ data.phone }}</span>
           </div>
         </template>
       </Column>

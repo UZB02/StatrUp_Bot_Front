@@ -75,6 +75,16 @@ const routes = [
     },
   },
   {
+    path: '/vacancies',
+    name: 'VacanciesView',
+    component: () => import('../views/Vacancies/VacanciesView.vue'),
+    meta: {
+      layout: AppLayout,
+      requiresAuth: true,
+      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+    },
+  },
+  {
     path: '/users',
     name: 'UsersView',
     component: () => import('../views/Users/UsersView.vue'),
