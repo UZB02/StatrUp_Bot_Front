@@ -73,6 +73,7 @@ import { useToast } from "primevue/usetoast";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
+import Toast from 'primevue/toast';
 
 import UsersHeader from "@/components/Users/UsersHeader.vue";
 import UsersTable from "@/components/Users/UsersTable.vue";

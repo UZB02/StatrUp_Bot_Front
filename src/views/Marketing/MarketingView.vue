@@ -59,6 +59,7 @@
       </div>
     </div>
   </div>
+   <Toast />
 </template>
 
 <script setup>
@@ -67,6 +68,8 @@ import  Dropdown  from "primevue/dropdown";
 import Textarea from 'primevue/textarea';
 import  Button  from "primevue/button";
 import  Card from "primevue/card";
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
 import api from "@/utils/api.js";
 
 const filials = ref([]);
@@ -74,6 +77,7 @@ const selectedFilial = ref(null);
 const adminMessage = ref("");
 const previewText = ref("");
 const stats = ref(null);
+const toast = useToast();
 
 
 
@@ -111,7 +115,12 @@ const sendMarketing = async () => {
       message: adminMessage.value,
     });
     stats.value = data.stats;
-    alert("Marketing yuborildi!");
+    toast.add({
+      severity: "success",
+      summary: "Tayyor",
+      detail: "Xabar yuborildi",
+      life: 3000,
+    });
   } catch (err) {
     console.error(err);
     alert("Marketing yuborishda xatolik yuz berdi");
