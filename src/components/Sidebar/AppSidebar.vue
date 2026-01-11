@@ -18,6 +18,7 @@ const menuItems = ref([
   { label: "Filiallar", icon: "pi pi-sitemap", to: "/filials", roles: ["superadmin"] },
   { label: "Mahsulotlar", icon: "pi pi-database", to: "/products", roles: ["superadmin"] },
   { label: "Mijozlar", icon: "pi pi-address-book", to: "/users", roles: ["admin", "superadmin"] },
+  { label: "Marketing", icon: "pi pi-wave-pulse", to: "/marketing", roles: ["superadmin"] },
   { label: "Vakansiyalar", icon: "pi pi-sitemap", to: "/vacancies", roles: ["superadmin"] },
 ]);
 

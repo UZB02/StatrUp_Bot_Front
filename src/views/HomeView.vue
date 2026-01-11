@@ -355,6 +355,7 @@ const loadLatest = async () => {
     const { data } = await api.get("/dashboard/latest", {
       params: params(), // page va limit backendga boradi
     });
+    console.log(data);
 
     // data.data => tranzaksiyalar, data.pagination => total
     latest.value = data.data.map((tx) => {
