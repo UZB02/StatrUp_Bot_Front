@@ -61,7 +61,6 @@ const menuItems = [
   {
     label: 'Mening profilim',
     items: [
-      { label: 'Sozlamalar', icon: 'pi pi-cog' },
       { 
         label: 'Chiqish', 
         icon: 'pi pi-sign-out', 

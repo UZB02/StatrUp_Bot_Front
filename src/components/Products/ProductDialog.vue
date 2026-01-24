@@ -1,114 +1,140 @@
 <template>
   <Dialog
-    :header="editingProduct ? 'Productni tahrirlash' : 'Yangi Product'"
     :visible="visible"
     @update:visible="$emit('close')"
     :modal="true"
     :closable="false"
-    class="w-full max-w-md"
-    :style="{ borderRadius: '12px' }"
+    :draggable="false"
+    class="w-full max-w-lg mx-3"
+    :pt="{
+      root: { class: 'border-none shadow-2xl overflow-hidden rounded-3xl' },
+      header: { class: 'bg-slate-50 border-b border-slate-100 p-6' },
+      content: { class: 'p-0' }
+    }"
   >
-    <form @submit.prevent="onSubmit" class="space-y-6">
-      <!-- Product Name Field -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">Mahsulot nomi</label>
-        <InputText 
-          v-model="form.name" 
-          required 
-          class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          placeholder="Mahsulot nomini kiriting"
-        />
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div :class="editingProduct ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'" class="p-2.5 rounded-xl">
+          <i :class="editingProduct ? 'pi pi-pencil' : 'pi pi-plus'" class="text-xl"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-800">
+            {{ editingProduct ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot' }}
+          </h3>
+          <p class="text-xs text-slate-500 font-medium">Ma'lumotlarni aniq kiriting</p>
+        </div>
       </div>
+    </template>
 
-      <!-- Branch Field -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">Filial</label>
-        <Select
-          v-model="form.filial"
-          :options="filials"
-          option-label="name"
-          option-value="_id"
-          placeholder="Filialni tanlang"
-          required
-          class="w-full"
-          :class="{ 'p-inputtext-sm': true }"
-        />
-      </div>
+    <form @submit.prevent="onSubmit" class="p-6 space-y-5 bg-white">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        <div class="md:col-span-2 space-y-1.5">
+          <label class="text-sm font-bold text-slate-700 ml-1">Mahsulot nomi</label>
+          <InputText 
+            v-model="form.name" 
+            required 
+            class="w-full !rounded-xl !border-slate-200 !bg-slate-50/50 focus:!bg-white transition-all hover:!border-blue-400"
+            placeholder="Mahsulot nomi"
+          />
+        </div>
 
-      <!-- Unit Field -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">Birlik</label>
-        <Select
-          v-model="form.unit"
-          :options="units"
-          option-label="label"
-          option-value="value"
-          placeholder="Birlini tanlang"
-          required
-          class="w-full"
-        />
-      </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-bold text-slate-700 ml-1">Filial</label>
+          <Select
+            v-model="form.filial"
+            :options="filials"
+            option-label="name"
+            option-value="_id"
+            placeholder="Tanlang"
+            required
+            class="w-full !rounded-xl !border-slate-200 !bg-slate-50/50"
+          />
+        </div>
 
-      <!-- Quantity  -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">
-          Miqdor
-        </label>
-        <InputNumber
-          v-model="form.quantity"
-          :min="0"
-          :suffix="` `+ form.unit"
-          required
-          class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          input-class="bg-gray-50 text-gray-900"
-        />
-      </div>
-      <!-- Price Field -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">
-          Narx
-          <span class="font-normal text-gray-600 text-xs ml-1">({{ form.unit === 'dona' ? '1 dona' : form.unit === 'litr' ? '1 litr' : '1 kg' }} uchun)</span>
-        </label>
-        <InputNumber
-          v-model="form.price"
-          :min="0"
-          suffix=" UZS"
-          required
-          class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          input-class="bg-gray-50 text-gray-900"
-        />
-      </div>
+        <div class="space-y-1.5">
+          <label class="text-sm font-bold text-slate-700 ml-1">Birlik</label>
+          <Select
+            v-model="form.unit"
+            :options="units"
+            option-label="label"
+            option-value="value"
+            placeholder="Tanlang"
+            required
+            class="w-full !rounded-xl !border-slate-200 !bg-slate-50/50"
+          />
+        </div>
 
-      <!-- Discount Field -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-900">Chegirma</label>
-        <div class="relative">
-       <input
-  type="number"
-  v-model.number="form.discount"  
-  min="0"
-  max="100"
-  step="0.1"                    
-  placeholder="Discount (%)"
-  class="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
-/>
+        <div class="space-y-1.5">
+          <label class="text-sm font-bold text-slate-700 ml-1">Miqdor</label>
+          <InputNumber
+            v-model="form.quantity"
+            :min="0"
+            :suffix="' ' + form.unit"
+            :minFractionDigits="1"
+            required
+            class="w-full"
+            input-class="!rounded-xl !border-slate-200 !bg-slate-50/50 w-full font-semibold"
+          />
+        </div>
 
+        <div class="space-y-1.5">
+          <label class="text-sm font-bold text-slate-700 ml-1">Narxi (1 {{ form.unit }} uchun)</label>
+          <InputNumber
+            v-model="form.price"
+            :min="0"
+            mode="currency"
+            currency="UZS"
+            locale="uz-UZ"
+            required
+            class="w-full"
+            input-class="!rounded-xl !border-slate-200 !bg-slate-50/50 w-full font-bold text-blue-600"
+          />
+        </div>
+
+        <div class="md:col-span-2 space-y-2 p-4 bg-rose-50/30 rounded-2xl border border-rose-100/50">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-bold text-slate-700">Chegirma miqdori</label>
+            <div class="flex items-center gap-2">
+               <span v-if="form.discount > 0" class="text-[10px] font-black uppercase text-rose-500 animate-pulse text-right">Aksiya faol</span>
+               <InputNumber
+                v-model="form.discount"
+                :min="0"
+                :max="100"
+                :minFractionDigits="1"
+                :maxFractionDigits="2"
+                suffix=" %"
+                input-class="w-20 !py-1 !px-2 !text-right !rounded-lg !border-rose-200 !text-sm font-bold !bg-white"
+              />
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4">
+            <input
+              type="range"
+              v-model.number="form.discount"
+              min="0"
+              max="100"
+              step="0.1"
+              class="flex-1 h-1.5 bg-rose-100 rounded-lg appearance-none cursor-pointer accent-rose-500"
+            />
+          </div>
+          <p class="text-[10px] text-slate-400 italic font-medium">Slayderni suring yoki aniq qiymatni (masalan: 0.5) yozing</p>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200">
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
         <Button 
           label="Bekor qilish" 
-          class="p-button-text text-gray-700 hover:bg-gray-100" 
+          text 
+          class="!text-slate-500 !font-bold hover:!bg-slate-100 !px-6 !py-3 !rounded-xl transition-all" 
           @click="$emit('close')"
-          severity="secondary"
         />
         <Button 
-          label="Saqlash" 
+          :label="editingProduct ? 'Yangilash' : 'Saqlash'" 
           type="submit"
-          class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          severity="primary"
+          :icon="editingProduct ? 'pi pi-refresh' : 'pi pi-check'"
+          class="!bg-blue-600 hover:!bg-blue-700 !border-none !px-8 !py-3 !rounded-xl !shadow-lg !shadow-blue-200 transition-transform active:scale-95"
         />
       </div>
     </form>

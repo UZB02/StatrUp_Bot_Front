@@ -8,7 +8,7 @@ import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice'
 import Tooltip from 'primevue/tooltip'
 import ConfirmationService from 'primevue/confirmationservice'
-
+import { vMaska } from 'maska/vue'
 import 'primeicons/primeicons.css'
 
 // PrimeVue components
@@ -24,6 +24,7 @@ import Toast from 'primevue/toast'
 import Chart from 'primevue/chart'
 import DataTable from 'primevue/datatable' // ✅
 import Column from 'primevue/column' // ✅
+import InputSwitch from 'primevue/inputswitch'
 
 const app = createApp(App)
 
@@ -37,6 +38,7 @@ app.use(PrimeVue, {
 })
 
 app.directive('tooltip', Tooltip)
+app.directive('maska', vMaska)
 app.use(ToastService)
 app.use(ConfirmationService)
 
@@ -52,6 +54,7 @@ app.component('Menu', Menu)
 app.component('Toast', Toast)
 app.component('DataTable', DataTable) // ✅
 app.component('Column', Column) // ✅
+app.component('InputSwitch', InputSwitch)
 
 app.use(router)
 app.mount('#app')

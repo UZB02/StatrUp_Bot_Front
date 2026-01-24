@@ -1,87 +1,104 @@
 <template>
-  <div class="">
-    <!-- Header Section -->
-    <div class="border-b border-slate-200 bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 class="text-3xl font-bold text-slate-900 text-balance">Mahsulotlar</h1>
-            <p class="text-slate-500 text-sm mt-2">Barcha mahsulotlarni boshqaring va filter qiling</p>
-          </div>
-          <Button 
-            label="Yangi Mahsulot" 
-            icon="pi pi-plus" 
-            class="p-button-lg"
-            @click="openDialog"
-          />
-        </div>
+  <div class=" bg-[#f8fafc] pb-12">
+    <div class="bg-white/80 backdrop-blur-md border-b border-slate-200/60">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-8 py-5">
+       <div class="flex items-center justify-between gap-4">
+  <div class="space-y-0.5 min-w-0">
+    <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight truncate">
+      Mahsulotlar
+    </h1>
+    <div class="flex items-center gap-2 text-slate-500">
+      <span class="inline-flex flex-shrink-0 items-center justify-center w-5 h-5 bg-blue-100 text-blue-600 rounded-md text-[10px] font-bold">
+        {{ filteredProducts.length }}
+      </span>
+      <p class="text-xs md:text-sm font-medium truncate uppercase tracking-wider xs:block">
+        jami mahsulotlar
+      </p>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <Button 
+      @click="openDialog"
+      class="!bg-blue-600 !border-none !rounded-xl !h-11 !w-11 md:!w-auto md:!px-6 !shadow-lg !shadow-blue-200 hover:!scale-105 active:scale-95 transition-all"
+    >
+      <i class="pi pi-plus font-bold"></i>
+      <span class="hidden md:inline ml-2 font-bold whitespace-nowrap">Yangi mahsulot</span>
+    </Button>
+  </div>
+</div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class=" mx-auto">
-      <!-- Filters Section -->
-      <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-slate-200">
-        <div class="flex flex-col gap-4">
-          <div class="flex items-center gap-2 mb-2">
-            <i class="pi pi-sliders-v text-slate-600"></i>
-            <h2 class="font-semibold text-slate-900">Filtrlar</h2>
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-8 mt-8">
+      
+      <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-2 mb-8">
+        <div class="flex flex-col lg:flex-row items-center gap-2">
+          <div class="relative flex-1 w-full group">
+            <i class="pi pi-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+            <InputText
+              v-model="search"
+              placeholder="Mahsulot nomi yoki kodini yozing..."
+              class="w-full !pl-14 !py-4 !border-none !bg-transparent !rounded-2xl focus:!ring-0 text-slate-700"
+            />
           </div>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-slate-700">Mahsulot nomi</label>
-              <InputText
-                v-model="search"
-                placeholder="Qidirish..."
-                class="w-full"
-              />
-            </div>
-            
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium text-slate-700">Filial bo'yicha</label>
-              <Dropdown
-                v-model="selectedFilial"
-                :options="filials"
-                optionLabel="name"
-                optionValue="_id"
-                placeholder="Barcha filiallar"
-                class="w-full"
-                showClear
-              />
-            </div>
+          <div class="hidden lg:block w-px h-8 bg-slate-200"></div>
+
+          <div class="w-full lg:w-72 flex items-center px-4 group">
+            <i class="pi pi-map-marker text-slate-400 mr-3"></i>
+            <Dropdown
+              v-model="selectedFilial"
+              :options="filials"
+              optionLabel="name"
+              optionValue="_id"
+              placeholder="Barcha filiallar"
+              class="w-full !border-none !shadow-none !bg-transparent group-hover:text-blue-600"
+              showClear
+            />
+          </div>
+
+          <div class="p-1">
+             <Button 
+              icon="pi pi-filter" 
+              class="!bg-slate-100 !text-slate-600 !border-none !rounded-xl !h-12 !w-12"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Results Info -->
-      <div class="mb-6 flex items-center justify-between">
-        <div class="text-sm text-slate-600">
-          <span class="font-semibold text-slate-900">{{ filteredProducts.length }}</span>
-          <span> ta mahsulot topildi</span>
+      <transition name="fade-slide" mode="out-in">
+        <div v-if="filteredProducts.length > 0">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            <ProductCard
+              v-for="(product, index) in filteredProducts"
+              :key="product._id"
+              :product="product"
+              :style="{ transitionDelay: `${index * 50}ms` }"
+              @edit="editProduct"
+              @delete="deleteProduct"
+            />
+          </div>
         </div>
-      </div>
 
-      <!-- Products Grid -->
-      <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <ProductCard
-          v-for="product in filteredProducts"
-          :key="product._id"
-          :product="product"
-          @edit="editProduct"
-          @delete="deleteProduct"
-        />
-      </div>
-
-      <!-- Empty State -->
-      <div v-else class="flex flex-col items-center justify-center py-16">
-        <i class="pi pi-inbox text-6xl text-slate-300 mb-4"></i>
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Mahsulot topilmadi</h3>
-        <p class="text-slate-500 text-sm">Filtrlarni o'zgartirib ko'ring yoki yangi mahsulot qo'shing</p>
-      </div>
+        <div v-else class="flex flex-col items-center justify-center py-24 bg-white rounded-[3rem] border border-dashed border-slate-200">
+          <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+            <i class="pi pi-search-minus text-4xl text-slate-300"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">Hech narsa topilmadi</h3>
+          <p class="text-slate-500 max-w-xs text-center">
+            Qidiruv so'rovini o'zgartiring yoki filtrlarni tozalab ko'ring
+          </p>
+          <Button 
+            label="Filtrlarni tozalash" 
+            link 
+            class="mt-4 !font-bold" 
+            @click="search = ''; selectedFilial = null" 
+          />
+        </div>
+      </transition>
     </div>
 
-    <!-- Dialog -->
     <ProductDialog
       :visible="showDialog"
       :editing-product="editingProduct"
@@ -188,4 +205,31 @@ onMounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.4s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Custom Scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>

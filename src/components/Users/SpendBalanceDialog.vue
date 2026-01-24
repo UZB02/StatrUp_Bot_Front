@@ -129,143 +129,173 @@ const save = async () => {
 </script>
 
 <template>
-  <Dialog
-    v-model:visible="visible"
-    modal
-    style="width: 520px"
-    header="Balans sarflash"
+  <Dialog 
+    v-model:visible="visible" 
+    modal 
+    :closable="false"
+    class="w-[95vw] max-w-[550px] !rounded-[2.5rem] !overflow-hidden !border-none shadow-2xl"
   >
-    <!-- USER INFO -->
-    <div
-      v-if="user"
-      class="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200"
-    >
-      <p class="text-sm text-gray-600">Foydalanuvchi</p>
-      <p class="font-semibold">{{ user.fullname }}</p>
-      <p class="text-sm">
-        Joriy balans:
-        <span class="font-bold text-blue-600">
-          {{ formatCurrency(user.balance || 0) }}
-        </span>
-      </p>
-    </div>
-
-    <!-- FILIAL -->
-    <Dropdown
-      v-model="selectedFilial"
-      :options="filials"
-      optionLabel="name"
-      placeholder="Filial tanlang"
-      class="w-full mb-3"
-    />
-
-    <!-- ADD PRODUCT -->
-    <Button
-      label="Mahsulot qo‘shish"
-      icon="pi pi-plus"
-      class="w-full mb-3"
-      :disabled="!selectedFilial || products.length === 0"
-      @click="productDialog = true"
-    />
-
-    <!-- BASKET -->
-    <div v-if="basket.length" class="space-y-2 mb-3">
-      <div
-        v-for="(item, i) in basket"
-        :key="item.productId"
-        class="flex justify-between items-center p-2 border rounded"
-      >
+    <template #header>
+      <div class="flex items-center gap-4 py-2">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm">
+          <i class="pi pi-shopping-cart text-xl"></i>
+        </div>
         <div>
-          <p class="font-semibold">{{ item.name }}</p>
-          <p class="text-sm text-gray-500">
-            {{ formatCurrency(item.price) }}
-          </p>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <input
-            type="number"
-            min="1"
-            v-model.number="item.quantity"
-            class="w-20 px-2 py-1 border rounded"
-          />
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            @click="removeItem(i)"
-          />
+          <h3 class="text-xl font-black text-slate-900 leading-none">Balans sarflash</h3>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Foydalanuvchi hisobidan chiqarish</p>
         </div>
       </div>
-    </div>
+    </template>
 
-    <!-- TOTAL / REMAIN -->
-    <div
-      v-if="basket.length"
-      class="mb-4 p-3 rounded-lg border"
-      :class="
-        remainingBalance >= 0
-          ? 'bg-green-50 border-green-300'
-          : 'bg-red-50 border-red-300'
-      "
-    >
-      <p>Jami sarf: <b>{{ formatCurrency(totalAmount) }}</b></p>
-      <p>
-        Qolgan balans:
-        <span
-          class="font-bold"
-          :class="remainingBalance >= 0 ? 'text-green-700' : 'text-red-700'"
+    <div class="space-y-6 pt-2">
+      <div v-if="user" class="relative overflow-hidden p-5 rounded-[2rem] bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-lg">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+        <div class="relative flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Joriy Balans</p>
+            <h2 class="text-2xl font-black text-emerald-400">{{ formatCurrency(user.balance || 0) }}</h2>
+            <p class="text-xs font-bold text-slate-300 mt-2 flex items-center gap-2">
+              <i class="pi pi-user text-[10px]"></i> {{ user.fullname }}
+            </p>
+          </div>
+          <i class="pi pi-wallet text-4xl text-white/10"></i>
+        </div>
+      </div>
+
+      <form @submit.prevent="save" class="space-y-5">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Filialni tanlang</label>
+          <Dropdown
+            v-model="selectedFilial"
+            :options="filials"
+            optionLabel="name"
+            placeholder="Filialni tanlang"
+            class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 focus:!ring-2 focus:!ring-rose-500/20"
+          />
+        </div>
+
+        <Button
+          label="Mahsulot qo‘shish"
+          icon="pi pi-plus-circle"
+          class="w-full !py-4 !rounded-2xl !bg-white !border-2 !border-dashed !border-slate-200 !text-slate-500 hover:!border-rose-400 hover:!text-rose-600 transition-all shadow-none font-bold"
+          :disabled="!selectedFilial || products.length === 0"
+          @click="productDialog = true"
+        />
+
+        <div v-if="basket.length" class="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+          <div v-for="(item, i) in basket" :key="item.productId" 
+            class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100 group">
+            
+            <div class="flex-1">
+              <p class="text-sm font-black text-slate-700 leading-tight">{{ item.name }}</p>
+              <p class="text-[10px] font-bold text-slate-400">{{ formatCurrency(item.price) }}</p>
+            </div>
+
+            <div class="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm">
+              <InputNumber 
+                v-model="item.quantity" 
+                :min="0.1" 
+                :minFractionDigits="1"
+                :step="0.5"
+                class="w-24"
+                inputClass="!w-6 !p-0 !text-center !bg-transparent !border-none !text-xs !font-black"
+                showButtons
+                buttonLayout="horizontal"
+                incrementButtonIcon="pi pi-plus text-[8px]"
+                decrementButtonIcon="pi pi-minus text-[8px]"
+                incrementButtonClass="!p-1 !bg-transparent !border-none !text-slate-400"
+                decrementButtonClass="!p-1 !bg-transparent !border-none !text-slate-400"
+              />
+            </div>
+
+            <Button icon="pi pi-trash" severity="danger" text rounded class="!w-8 !h-8" @click="removeItem(i)" />
+          </div>
+        </div>
+
+        <div v-if="basket.length" 
+          :class="[
+            'p-5 rounded-[2rem] border-2 transition-all duration-500',
+            remainingBalance >= 0 ? 'bg-emerald-50/50 border-emerald-100' : 'bg-rose-50 border-rose-100'
+          ]"
         >
-          {{ formatCurrency(remainingBalance) }}
-        </span>
-      </p>
-    </div>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jami sarf:</span>
+            <span class="text-lg font-black text-slate-800">{{ formatCurrency(totalAmount) }}</span>
+          </div>
+          
+          <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mb-3">
+            <div 
+              class="h-full transition-all duration-1000"
+              :class="remainingBalance >= 0 ? 'bg-emerald-500' : 'bg-rose-500'"
+              :style="{ width: Math.min((totalAmount / (user.balance || 1)) * 100, 100) + '%' }"
+            ></div>
+          </div>
 
-    <!-- ACTIONS -->
-    <div class="flex gap-2">
-      <Button
-        label="Bekor qilish"
-        severity="secondary"
-        class="flex-1"
-        @click="visible = false"
-      />
-      <Button
-        label="Ayirish"
-        severity="danger"
-        class="flex-1"
-        :loading="isLoading"
-        :disabled="!canSubmit"
-        @click="save"
-      />
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Qolgan balans:</span>
+            <span :class="['text-sm font-black', remainingBalance >= 0 ? 'text-emerald-600' : 'text-rose-600']">
+              {{ formatCurrency(remainingBalance) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <Button 
+            label="Bekor qilish" 
+            text 
+            class="flex-1 !py-4 !rounded-2xl !font-bold !text-slate-400" 
+            @click="visible = false" 
+          />
+          <Button 
+            label="Mablag'ni ayirish" 
+            severity="danger" 
+            class="flex-[2] !py-4 !rounded-2xl !bg-rose-600 !border-none !text-white !font-black shadow-lg shadow-rose-200 active:scale-95 transition-all"
+            :loading="isLoading" 
+            :disabled="!canSubmit || remainingBalance < 0" 
+            @click="save" 
+          />
+        </div>
+        <p v-if="remainingBalance < 0" class="text-center text-[10px] font-bold text-rose-500 uppercase tracking-tighter">
+          <i class="pi pi-exclamation-triangle"></i> Hisobda mablag' yetarli emas!
+        </p>
+      </form>
     </div>
   </Dialog>
 
-  <!-- PRODUCT SEARCH -->
-  <Dialog
-    v-model:visible="productDialog"
-    modal
-    header="Mahsulot tanlang"
-    style="width: 600px"
-  >
-    <InputText
-      v-model="search"
-      placeholder="Mahsulot nomi bo‘yicha qidirish..."
-      class="w-full mb-3"
-    />
-
-    <div class="max-h-96 overflow-y-auto">
-      <div
-        v-for="p in filteredProducts"
-        :key="p._id"
-        class="p-3 mb-2 border rounded cursor-pointer hover:bg-blue-50"
-        @click="addToBasket(p)"
-      >
-        <p class="font-semibold">{{ p.name }}</p>
-        <p class="text-sm text-gray-600">
-          {{ formatCurrency(p.price) }}
-        </p>
+  <Dialog v-model:visible="productDialog" modal header="Mahsulot tanlash" class="w-[90vw] max-w-[500px] !rounded-[2.5rem]">
+    <div class="space-y-4">
+      <div class="relative group">
+        <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <InputText v-model="search" placeholder="Qidirish..." class="w-full !rounded-2xl !bg-slate-50 !border-none !py-4 !pl-12 focus:!ring-2 focus:!ring-rose-500/10" />
+      </div>
+      
+      <div class="max-h-80 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+        <div v-for="p in filteredProducts" :key="p._id" 
+          class="p-4 rounded-2xl border border-slate-50 hover:bg-rose-50 hover:border-rose-100 cursor-pointer transition-all flex justify-between items-center group"
+          @click="addToBasket(p)">
+          <div>
+            <p class="font-black text-slate-700">{{ p.name }}</p>
+            <p class="text-xs font-bold text-emerald-500">{{ formatCurrency(p.price) }}</p>
+          </div>
+          <i class="pi pi-plus-circle text-slate-300 group-hover:text-rose-500 text-xl transition-colors"></i>
+        </div>
       </div>
     </div>
   </Dialog>
-   <Toast />
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+:deep(.p-dialog-header) {
+  padding: 1.5rem 2rem 1rem;
+}
+:deep(.p-dialog-content) {
+  padding: 0 2rem 2rem;
+}
+</style>

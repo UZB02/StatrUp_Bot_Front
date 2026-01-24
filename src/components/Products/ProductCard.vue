@@ -1,67 +1,77 @@
 <template>
-  <div class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-    <!-- Background accent -->
-    <div class="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-emerald-50/0 group-hover:from-blue-50/50 group-hover:to-emerald-50/30 transition-all duration-300"></div>
+  <div class="group relative overflow-hidden rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-emerald-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
     
-    <div class="relative p-6 space-y-4">
-      <!-- Header with status badge -->
-      <div class="flex items-start justify-between gap-3">
+    <div class="relative p-5 space-y-5">
+      <div class="flex items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
-          <h3 class="text-lg font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2 h-2 rounded-full" :class="product.isActive ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+            <p class="text-xs font-medium text-slate-400 uppercase tracking-widest">{{ product.filial?.name || 'Asosiy filial' }}</p>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors duration-300">
             {{ product.name }}
           </h3>
-          <p class="text-sm text-slate-500 mt-1 line-clamp-1">{{ product.filial?.name }}</p>
         </div>
         <Tag
           :value="product.isActive ? 'Faol' : 'Nofaol'"
           :severity="product.isActive ? 'success' : 'danger'"
-          class="whitespace-nowrap"
+          class="!rounded-full !px-3 !text-[10px] !font-bold uppercase tracking-tighter"
         />
       </div>
 
-      <!-- Product details grid -->
-      <div class="grid grid-cols-2 gap-4 py-2">
-        <div class="space-y-1">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Miqdor</p>
-          <p class="text-sm font-semibold text-slate-900">{{ product.quantity }} {{ product.unit }}</p>
+      <div class="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-50/50 border border-slate-100">
+        <div class="space-y-0.5">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Omborda</p>
+          <p class="text-sm font-bold text-slate-700">{{ product.quantity }} <span class="text-slate-400 font-medium">{{ product.unit }}</span></p>
         </div>
-        <div class="space-y-1">
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Narx</p>
-          <p class="text-sm font-semibold text-slate-900">{{ formatCurrency(product.price) }} / {{ product.unit }}</p>
+        <div class="space-y-0.5">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Narxi</p>
+          <p class="text-sm font-bold text-blue-600">{{ formatCurrency(product.price) }}</p>
         </div>
-      </div>
-     <div class="space-y-1">
-       <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Holat</p>
-       <div class="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  :class="product.quantity <100 ? `bg-gradient-to-r from-red-600 to-red-400 h-2 rounded-full` : `bg-gradient-to-r from-green-600 to-green-400 h-2 rounded-full`" 
-                  :style="{ width: `${Math.min((product.quantity / 1000) * 100, 100)}%` }"
-                ></div>
-              </div>
-     </div>
-      <!-- Discount highlight -->
-      <div v-if="product.discount > 0" class="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-100">
-        <span class="inline-flex items-center justify-center w-auto p-2 h-6 bg-red-500 text-white text-xs font-bold rounded">
-          {{ product.discount }}%
-        </span>
-        <span class="text-sm font-medium text-slate-700">Chegirma</span>
       </div>
 
-      <!-- Action buttons -->
-      <div class="flex gap-2 pt-2 border-t border-slate-200">
-        <Button
-          icon="pi pi-pencil"
-          label="Tahrirlash"
-          class="flex-1 p-button-sm p-button-outlined"
-          severity="warning"
-          @click="$emit('edit', product)"
-        />
-        <Button
-          icon="pi pi-trash"
-          class="p-button-sm p-button-outlined p-button-danger"
-          @click="$emit('delete', product._id)"
-          v-tooltip.top="'O\'chirish'"
-        />
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-[11px] font-bold">
+          <span class="text-slate-500 uppercase">Zaxira holati</span>
+          <span :class="product.quantity < 100 ? 'text-rose-500' : 'text-emerald-500'">
+            {{ Math.min(((product.quantity / 1000) * 100).toFixed(0), 100) }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div 
+            class="h-full transition-all duration-700 ease-out rounded-full"
+            :class="product.quantity < 100 ? 'bg-gradient-to-r from-rose-500 to-orange-400' : 'bg-gradient-to-r from-emerald-500 to-teal-400'" 
+            :style="{ width: `${Math.min((product.quantity / 1000) * 100, 100)}%` }"
+          ></div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 pt-2">
+        <div v-if="product.discount > 0" class="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg border border-rose-100">
+          <i class="pi pi-percentage text-[10px] font-bold"></i>
+          <span class="text-xs font-black">{{ product.discount }}</span>
+        </div>
+        <div v-else class="h-[26px]"></div> <div class="flex gap-2">
+          <Button
+            icon="pi pi-pencil"
+            text
+            rounded
+            severity="secondary"
+            class="!h-9 !w-9 hover:!bg-blue-50 hover:!text-blue-600 transition-colors"
+            @click="$emit('edit', product)"
+            v-tooltip.top="'Tahrirlash'"
+          />
+          <Button
+            icon="pi pi-trash"
+            text
+            rounded
+            severity="danger"
+            class="!h-9 !w-9 hover:!bg-rose-50 transition-colors"
+            @click="$emit('delete', product._id)"
+            v-tooltip.top="'O\'chirish'"
+          />
+        </div>
       </div>
     </div>
   </div>

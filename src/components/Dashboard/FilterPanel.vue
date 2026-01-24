@@ -1,100 +1,99 @@
 <template>
-  <div
-    class="w-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg border border-slate-200 p-6"
-  >
-    <!-- HEADER -->
-    <div class="flex items-center gap-3 mb-5">
-      <div
-        class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-md"
-      >
-        <i class="pi pi-filter text-white text-xl"></i>
+  <div class="w-full bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 p-8 transition-all duration-300">
+    
+    <div class="flex items-center gap-5 mb-8">
+      <div class="relative">
+        <div class="absolute inset-0 bg-blue-500 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
+        <div class="relative w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg text-white">
+          <i class="pi pi-filter text-2xl"></i>
+        </div>
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-slate-800">
+        <h3 class="text-2xl font-black text-slate-800 tracking-tight leading-none">
           Ma'lumotlarni filtrlash
         </h3>
-        <p class="text-sm text-slate-500">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mt-2">
           Kerakli davr, filial va mahsulotni tanlang
         </p>
       </div>
     </div>
 
-    <!-- FILTER GRID -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <!-- PERIOD -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">Davr</label>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      
+      <div class="space-y-2 group">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-calendar-plus text-[10px]"></i> Davr
+        </label>
         <Dropdown
           v-model="filters.period"
           :options="periods"
           optionLabel="label"
           optionValue="value"
           placeholder="Davrni tanlang"
+          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold"
         />
       </div>
 
-      <!-- YEAR -->
-      <div v-if="showYear" class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">Yil</label>
+      <div v-if="showYear" class="space-y-2 group animate-fadein">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+          <i class="pi pi-calendar text-[10px]"></i> Yil
+        </label>
         <InputNumber
           v-model="filters.year"
           :useGrouping="false"
           placeholder="Yil"
+          class="w-full"
+          inputClass="!rounded-2xl !bg-slate-50 !border-none !py-3 !px-4 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold"
         />
       </div>
 
-      <!-- MONTH -->
-      <div v-if="showMonth" class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">Oy</label>
+      <div v-if="showMonth" class="space-y-2 group animate-fadein">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+          <i class="pi pi-calendar text-[10px]"></i> Oy
+        </label>
         <Dropdown
           v-model="filters.month"
           :options="months"
           optionLabel="label"
           optionValue="value"
           placeholder="Oyni tanlang"
+          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
         />
       </div>
 
-      <!-- DATE (FROM) -->
-      <div v-if="showFrom" class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">
-          {{ filters.period === "day" ? "Kun" : "Boshlanish sanasi" }}
+      <div v-if="showFrom" class="space-y-2 group animate-fadein">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+          <i class="pi pi-clock text-[10px]"></i> 
+          {{ filters.period === "day" ? "Sana" : "Boshlanish" }}
         </label>
         <Calendar
           v-model="filters.from"
           dateFormat="yy-mm-dd"
           showIcon
+          class="w-full"
+          inputClass="!rounded-2xl !bg-slate-50 !border-none !py-3 font-bold"
         />
       </div>
 
-      <!-- TO DATE (FAQAT YEAR/MONTH/WEEK) -->
-      <!-- <div v-if="showTo" class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">
-          Tugash sanasi
+      <div class="space-y-2 group">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-map-marker text-[10px]"></i> Filial
         </label>
-        <Calendar
-          v-model="filters.to"
-          dateFormat="yy-mm-dd"
-          showIcon
-        />
-      </div> -->
-
-      <!-- FILIAL -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">Filial</label>
         <Dropdown
           v-model="filters.filial"
           :options="filials"
           optionLabel="name"
           optionValue="_id"
           showClear
-          placeholder="Filial"
+          placeholder="Barcha filiallar"
+          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
         />
       </div>
 
-      <!-- PRODUCT -->
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-slate-700">Mahsulot</label>
+      <div class="space-y-2 group">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-box text-[10px]"></i> Mahsulot
+        </label>
         <Dropdown
           v-model="filters.product"
           :options="products"
@@ -102,35 +101,40 @@
           optionValue="_id"
           showClear
           filter
-          placeholder="Mahsulot"
+          placeholder="Barcha mahsulotlar"
+          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
         />
       </div>
     </div>
 
-    <!-- ACTIONS -->
-    <div class="flex flex-wrap gap-3 pt-4 border-t border-slate-200">
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-100">
+      <div class="flex flex-wrap gap-3">
+        <Button
+          label="Filter qo'llash"
+          icon="pi pi-check-circle"
+          @click="apply"
+          class="!rounded-2xl !bg-blue-600 !border-none !px-8 !py-3 !font-black !uppercase !text-[10px] !tracking-widest !shadow-lg !shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+        />
+        <Button
+          label="Tozalash"
+          icon="pi pi-refresh"
+          severity="secondary"
+          text
+          @click="clear"
+          class="!rounded-2xl !font-black !uppercase !text-[10px] !tracking-widest !text-slate-400 hover:!bg-slate-50 transition-all"
+        />
+      </div>
+      
       <Button
-        label="Filter qo'llash"
-        icon="pi pi-check"
-        @click="apply"
-      />
-      <Button
-        label="Tozalash"
-        icon="pi pi-times"
-        severity="secondary"
-        outlined
-        @click="clear"
-      />
-      <Button
-        label="Excel"
+        label="Eksport Excel"
         icon="pi pi-file-excel"
         severity="success"
         @click="$emit('exportExcel')"
+        class="!rounded-2xl !bg-emerald-500 !border-none !px-8 !py-3 !font-black !uppercase !text-[10px] !tracking-widest !shadow-lg !shadow-emerald-200 hover:scale-105 active:scale-95 transition-all"
       />
     </div>
   </div>
 </template>
-
 <script setup>
 import { computed, watch } from "vue";
 import Dropdown from "primevue/dropdown";
@@ -195,3 +199,33 @@ const clear = () => {
   emit("reload");
 };
 </script>
+<style scoped>
+/* Animatsiya */
+.animate-fadein {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* PrimeVue dropdownlarini tozalash */
+:deep(.p-dropdown), :deep(.p-calendar), :deep(.p-inputnumber) {
+  box-shadow: none !important;
+}
+
+:deep(.p-dropdown-label) {
+  padding: 0.75rem 1rem !important;
+}
+
+:deep(.p-dropdown-trigger) {
+  width: 3rem !important;
+}
+
+:deep(.p-calendar-w-btn .p-datepicker-trigger) {
+  background: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+}
+</style>

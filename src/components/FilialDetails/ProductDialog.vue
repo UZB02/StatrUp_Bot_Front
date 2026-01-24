@@ -1,116 +1,144 @@
 <template>
   <Dialog
-    :header="product ? 'Productni tahrirlash' : 'Yangi Product'"
     :visible="visible"
     modal
-    class="w-full max-w-md"
     :closable="false"
     @update:visible="onVisibleChange"
+    class="w-[95vw] max-w-lg !rounded-[2.5rem] !overflow-hidden !border-none"
   >
-    <!-- <CHANGE> Enhanced form layout with better spacing and visual hierarchy -->
-    <form @submit.prevent="save" class="space-y-5">
-      <!-- Header section with green accent -->
-      <div class="pb-4 border-b border-green-100">
-        <p class="text-sm text-gray-500">
-          {{ product ? 'Mavjud mahsulotni tahrirlang' : 'Yangi mahsulot qo\'shing' }} 
-        </p>
+    <template #header>
+      <div class="flex items-center gap-4 py-2">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+          <i :class="['pi text-xl', product ? 'pi-pencil' : 'pi-plus']"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-slate-900 leading-none">
+            {{ product ? 'Mahsulotni tahrirlash' : 'Yangi Mahsulot' }}
+          </h3>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+            {{ product ? 'ID: #' + product._id.slice(-6) : 'Omborga qo\'shish' }}
+          </p>
+        </div>
       </div>
+    </template>
 
-      <!-- Product Name -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700">
-          Nomi
-          <span class="text-red-500">*</span>
+    <form @submit.prevent="save" class="space-y-6 pt-2">
+      <div class="space-y-2 group">
+        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 group-focus-within:text-emerald-500 transition-colors">
+          <i class="pi pi-tag text-[10px]"></i>
+          Mahsulot Nomi <span class="text-rose-500">*</span>
         </label>
         <InputText 
           v-model="form.name" 
-          class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-          placeholder="Product nomi kiriting..."
+          placeholder="Masalan: Maxsus Armatura"
           required 
+          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-4 !px-5 focus:!ring-2 focus:!ring-emerald-500/20 transition-all"
         />
       </div>
 
-      <!-- Unit Selection -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700">
-          Birlik
-          <span class="text-red-500">*</span>
-        </label>
-        <Select
-          v-model="form.unit"
-          :options="units"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Birlik tanlang"
-          class="w-full"
-          required
-        />
-      </div>
-
-      <!-- Quantity -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700">
-          Miqdor
-        </label>
-        <InputNumber 
-          v-model="form.quantity" 
-          :min="0" 
-          class="w-full"
-          placeholder="0"
-        />
-      </div>
-
-      <!-- Price -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700">
-          Narx (1 {{ form.unit }})
-          <span class="text-red-500">*</span>
-        </label>
-     <InputNumber
-  v-model="form.price"
-  class="w-full"
-  placeholder="0"
-  required
-/>
-
-      </div>
-
-      <!-- Discount -->
-      <div class="space-y-2">
-        <label class="block text-sm font-semibold text-gray-700">
-          Chegirma (%)
-        </label>
-        <div class="relative">
-          <InputNumber
-            v-model="form.discount"
-            :min="0"
-            :max="100"
-            class="w-full"
-            placeholder="0"
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+            <i class="pi pi-box text-[10px]"></i>
+            Birlik <span class="text-rose-500">*</span>
+          </label>
+          <Select
+            v-model="form.unit"
+            :options="units"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Tanlang"
+            class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1"
           />
-          <span class="absolute right-3 top-2.5 text-sm font-medium text-gray-500">%</span>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+            <i class="pi pi-chart-line text-[10px]"></i>
+            Miqdor
+          </label>
+          <InputNumber 
+            v-model="form.quantity" 
+            :min="0" 
+            placeholder="0.00"
+            class="w-full !rounded-2xl !bg-slate-50 !border-none overflow-hidden"
+            inputClass="!bg-transparent !border-none !py-4 !px-5 w-full"
+          />
         </div>
       </div>
 
-      <!-- <CHANGE> Enhanced button styling with green primary and improved spacing -->
-      <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
+      <div class="bg-slate-50/80 p-6 rounded-[2rem] space-y-5 border border-slate-100">
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] ml-1">
+            <i class="pi pi-money-bill text-[10px]"></i>
+            Narxi (1 {{ form.unit || 'birlik' }} uchun)
+          </label>
+          <InputNumber
+            v-model="form.price"
+            mode="currency"
+            currency="UZS"
+            locale="uz-UZ"
+            placeholder="0.00 UZS"
+            required
+            class="w-full !rounded-xl !bg-white !border-slate-200 overflow-hidden shadow-sm"
+            inputClass="!bg-transparent !border-none !py-4 !px-5 w-full font-black text-slate-700"
+          />
+        </div>
+
+       <div class="space-y-4">
+  <label class="flex items-center justify-between text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] ml-1">
+    <span class="flex items-center gap-2">
+      <i class="pi pi-percentage text-[10px]"></i> 
+      Chegirma miqdori
+    </span>
+    <span class="text-sm font-black bg-orange-100 px-2 py-0.5 rounded-lg">
+      {{ form.discount || 0 }}%
+    </span>
+  </label>
+
+  <div class="flex items-center gap-4">
+    <Slider 
+      v-model="form.discount" 
+      :min="0" 
+      :max="100" 
+      :step="0.1" 
+      class="flex-1 !h-1.5" 
+    />
+    
+    <InputNumber
+      v-model="form.discount"
+      :min="0"
+      :max="100"
+      :minFractionDigits="1"
+      :maxFractionDigits="2"
+      suffix="%"
+      class="w-24 overflow-hidden !rounded-xl"
+      inputClass="!py-2 !px-3 !text-xs !font-bold !bg-slate-100 !border-none text-center"
+    />
+  </div>
+  
+  <p class="text-[9px] text-slate-400 italic ml-1">
+    * Masalan: 0.2% yoki 0.5% kabi kichik qiymatlarni ham kiritishingiz mumkin.
+  </p>
+</div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-4">
         <Button
           label="Bekor qilish"
-          severity="secondary"
+          text
           type="button"
-          class="px-4 py-2"
+          class="flex-1 !py-4 !rounded-2xl !text-slate-400 !font-bold hover:!bg-slate-100 transition-all"
           @click="close"
         />
         <Button 
           label="Saqlash" 
           type="submit"
-          class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+          class="flex-[2] !py-4 !rounded-2xl !bg-emerald-600 !border-none !text-white !font-black !shadow-lg !shadow-emerald-200 hover:!scale-[1.02] active:!scale-95 transition-all"
         />
       </div>
     </form>
   </Dialog>
 </template>
-
 <script setup>
 import { ref, watch } from "vue";
 import api from "@/utils/api";
@@ -121,7 +149,7 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
 import Button from "primevue/button";
-
+import Slider from 'primevue/slider';
 /* Props */
 const props = defineProps({
   visible: {
@@ -221,3 +249,29 @@ const onVisibleChange = (val) => {
   else emit("update:visible", val);
 };
 </script>
+<style scoped>
+:deep(.p-dialog-header) {
+  padding: 2rem 2rem 1rem;
+  background: white;
+}
+
+:deep(.p-dialog-content) {
+  padding: 0 2rem 2rem;
+  background: white;
+}
+
+/* InputNumber ichki qismlarini to'g'irlash */
+:deep(.p-inputnumber-input) {
+  width: 100%;
+}
+
+/* Slider Emerald rangda bo'lishi uchun */
+:deep(.p-slider .p-slider-range) {
+  background: #10b981;
+}
+
+:deep(.p-slider .p-slider-handle) {
+  border: 3px solid #10b981;
+  background: white;
+}
+</style>

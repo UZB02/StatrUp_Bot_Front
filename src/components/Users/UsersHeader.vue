@@ -1,37 +1,52 @@
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-          <i class="pi pi-users text-white text-xl"></i>
+  <div class="relative overflow-hidden bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white p-6 md:p-8 mb-8 group">
+    <div class="absolute -right-24 -top-24 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity duration-700"></div>
+    
+    <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div class="flex items-center gap-5">
+        <div class="relative">
+          <div class="absolute inset-0 bg-blue-500 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
+          <div class="relative w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100 text-white">
+            <i class="pi pi-users text-2xl"></i>
+          </div>
         </div>
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900">Foydalanuvchilar</h2>
-          <p class="text-sm text-gray-500 mt-0.5">Barcha foydalanuvchilarni boshqaring</p>
+        
+        <div class="space-y-1">
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight leading-none">
+            Foydalanuvchilar
+          </h2>
+          <div class="flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+              Boshqaruv paneli
+            </p>
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <div class="relative">
+      <div class="flex flex-col md:flex-row gap-4 items-stretch">
+        <div class="relative group/search">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="pi pi-search text-slate-400 group-focus-within/search:text-blue-500 transition-colors"></i>
+          </div>
           <InputText
             :model-value="modelValue"
             @update:model-value="$emit('update:modelValue', $event)"
-            placeholder="Telefon yoki Avto raqam qidirish..."
-            class="pl-10 pr-4 py-2.5 w-full sm:w-80 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+            placeholder="Telefon yoki Avto raqam..."
+            class="!pl-12 !pr-6 !py-4 !w-full md:!w-80 !rounded-2xl !bg-slate-50 !border-none focus:!ring-4 focus:!ring-blue-500/10 !transition-all !duration-300 font-bold text-slate-700 placeholder:font-medium placeholder:text-slate-300 shadow-inner"
           />
         </div>
+
         <Button
           label="Barchasi"
           icon="pi pi-refresh"
-          severity="secondary"
-          class="px-4 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 hover:scale-105 active:scale-95 font-medium"
           @click="$emit('refresh')"
+          class="!px-6 !py-4 !rounded-2xl !bg-white !border-2 !border-slate-100 !text-slate-600 hover:!border-blue-200 hover:!text-blue-600 hover:!bg-blue-50/50 !transition-all !duration-300 !font-black !uppercase !text-[10px] !tracking-widest !shadow-none active:scale-95"
         />
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
 import  InputText  from 'primevue/inputtext';
 import Button from 'primevue/button';
@@ -44,12 +59,8 @@ defineEmits(["update:modelValue", "refresh"]);
 </script>
 
 <style scoped>
-/* Additional PrimeVue input styling */
-:deep(.p-inputtext) {
-  font-size: 0.875rem;
-}
-
-:deep(.p-inputtext:focus) {
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2);
+/* Maxsus animatsiya yoki qo'shimcha stil kerak bo'lsa */
+.shadow-inner {
+  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 }
 </style>

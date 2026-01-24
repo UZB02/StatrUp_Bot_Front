@@ -1,70 +1,96 @@
 <template>
-  <div class="">
-    <!-- Header + Search -->
+  <div class="p-4 md:p-8 max-w-[1400px] mx-auto space-y-8">
+    
     <UsersHeader
       v-model:modelValue="search"
       @refresh="getUsers"
     />
 
-    <!-- 🔹 QR / USB scanner input -->
-    <div class="my-4">
-     <InputText
-  v-model="scanInput"
-  placeholder="QR kodni skanerlang"
-  class="w-full"
-  :readonly="isScanning"
-  ref="scanInputEl"
-/>
+    <div class="relative group">
+      <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-[2rem] blur opacity-10 group-focus-within:opacity-25 transition duration-500"></div>
+      
+      <div class="relative bg-white rounded-[2rem] border border-slate-100 p-2 shadow-sm flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-qrcode text-2xl" :class="{ 'animate-pulse text-blue-500': isScanning }"></i>
+        </div>
+        
+        <InputText
+          v-model="scanInput"
+          placeholder="QR kodni skanerlang yoki ID kiriting..."
+          class="flex-1 !border-none !shadow-none !bg-transparent !py-4 font-bold text-slate-700 placeholder:text-slate-300 focus:!ring-0"
+          :readonly="isScanning"
+          ref="scanInputEl"
+        />
 
+        <div v-if="isScanning" class="pr-4 flex items-center gap-2">
+           <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest animate-pulse">Skanerlanmoqda...</span>
+           <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+        </div>
+        
+        <Button 
+          v-else
+          icon="pi pi-bolt" 
+          text 
+          rounded 
+          class="!text-slate-300 mr-2"
+          v-tooltip.left="'Skaner kutish rejimi'"
+        />
+      </div>
     </div>
 
-    <!-- User table -->
-    <UsersTable
-      :users="users"
-      :loading="loading"
-      @edit="openEdit"
-      @delete="deleteUser"
-      @updated="onTransactionCompleted"
-    />
+    <div class="relative min-h-[400px]">
+      <UsersTable
+        :users="users"
+        :loading="loading"
+        @edit="openEdit"
+        @delete="deleteUser"
+        @updated="onTransactionCompleted"
+      />
+    </div>
 
-    <!-- Edit dialog -->
     <UserEditDialog
       v-model:visible="editDialog"
       :user="editUser"
       @save="updateUser"
     />
+
+    <Dialog
+      v-model:visible="deleteDialog"
+      modal
+      :closable="false"
+      class="w-[95vw] max-w-[420px] !rounded-[2.5rem] !border-none !overflow-hidden shadow-2xl"
+    >
+      <div class="p-4 text-center">
+        <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <i class="pi pi-exclamation-triangle text-3xl"></i>
+        </div>
+        
+        <h3 class="text-xl font-black text-slate-900 mb-2">Foydalanuvchini o‘chirish</h3>
+        <p class="text-slate-500 font-medium mb-6">
+          <span class="font-black text-slate-800">"{{ selectedUser?.fullname }}"</span> 
+          hisobi tizimdan butunlay o‘chiriladi. Bu amalni ortga qaytarib bo‘lmaydi.
+        </p>
+
+        <div class="flex gap-3">
+          <Button 
+            label="Bekor qilish" 
+            text 
+            class="flex-1 !py-4 !rounded-2xl !font-bold !text-slate-400" 
+            @click="deleteDialog = false" 
+          />
+          <Button
+            label="O‘chirish"
+            severity="danger"
+            class="flex-1 !py-4 !rounded-2xl !bg-rose-500 !border-none !text-white !font-black !shadow-lg !shadow-rose-100"
+            :loading="deleting"
+            @click="deleteUsermain"
+          />
+        </div>
+      </div>
+    </Dialog>
+
+    <Toast position="bottom-right" />
   </div>
-
-  <!-- Delete dialog -->
-  <Dialog
-    v-model:visible="deleteDialog"
-    modal
-    header="Foydalanuvchi o‘chirish"
-    :style="{ width: '90vw', maxWidth: '400px' }"
-  >
-    <div class="space-y-3">
-      <p>
-        <strong>{{ selectedUser?.fullname }}</strong>
-        foydalanuvchini o‘chirmoqchimisiz?
-      </p>
-      <p class="text-sm text-red-600">
-        Bu amalni ortga qaytarib bo‘lmaydi.
-      </p>
-    </div>
-
-    <template #footer>
-      <Button label="Bekor qilish" text @click="deleteDialog = false" />
-      <Button
-        label="O‘chirish"
-        icon="pi pi-trash"
-        severity="danger"
-        @click="deleteUsermain"
-        :loading="deleting"
-      />
-    </template>
-  </Dialog>
-
-  <Toast />
 </template>
 <script setup>
 import { ref, onMounted, watch, nextTick } from "vue";
@@ -265,3 +291,18 @@ onMounted(async () => {
   scanInputEl.value?.focus();
 });
 </script>
+<style scoped>
+/* Skaner maydoni uchun ichki effekt */
+:deep(.p-inputtext:focus) {
+  box-shadow: none !important;
+}
+
+/* Dialog animatsiyalari va stili */
+:deep(.p-dialog-mask) {
+  backdrop-filter: blur(4px);
+}
+
+:deep(.p-dialog-content) {
+  padding: 2rem !important;
+}
+</style>
