@@ -6,7 +6,7 @@ import HomeView from '../views/HomeView.vue'
 const routes = [
   {
     path: '/',
-    name: 'home',
+    name: 'Asosiy Sahifa',
     component: HomeView,
     meta: {
       layout: AppLayout,
@@ -16,7 +16,7 @@ const routes = [
   },
   {
     path: '/admins',
-    name: 'AdminsView',
+    name: 'Adminlar',
     component: () => import('../views/Admins/AdminView.vue'),
     meta: {
       layout: AppLayout,
@@ -26,7 +26,7 @@ const routes = [
   },
   {
     path: '/admins/:id',
-    name: 'AddAdminsView',
+    name: 'Admin qo\'shish',
     component: () => import('../views/Admins/AddAdminView.vue'),
     meta: {
       layout: AppLayout,
@@ -36,7 +36,7 @@ const routes = [
   },
   {
     path: '/admins/edit/:id',
-    name: 'EditAdminsView',
+    name: 'Adminni Tahrirlash',
     component: () => import('../views/Admins/EditAdminView.vue'),
     meta: {
       layout: AppLayout,
@@ -46,7 +46,7 @@ const routes = [
   },
   {
     path: '/products',
-    name: 'ProductsView',
+    name: 'Mahsulotlar',
     component: () => import('../views/Products/ProductsView.vue'),
     meta: {
       layout: AppLayout,
@@ -56,7 +56,7 @@ const routes = [
   },
   {
     path: '/filials',
-    name: 'FilialsView',
+    name: 'Filiallar',
     component: () => import('../views/Filials/FilialsView.vue'),
     meta: {
       layout: AppLayout,
@@ -66,7 +66,7 @@ const routes = [
   },
   {
     path: '/filials/:id',
-    name: 'FilialsIdView',
+    name: 'Filial',
     component: () => import('../views/Filials/FilialIdView.vue'),
     meta: {
       layout: AppLayout,
@@ -76,7 +76,7 @@ const routes = [
   },
   {
     path: '/marketing',
-    name: 'MarketingView',
+    name: 'Marketing',
     component: () => import('../views/Marketing/MarketingView.vue'),
     meta: {
       layout: AppLayout,
@@ -86,7 +86,7 @@ const routes = [
   },
   {
     path: '/vacancies',
-    name: 'VacanciesView',
+    name: 'Vakansiyalar',
     component: () => import('../views/Vacancies/VacanciesView.vue'),
     meta: {
       layout: AppLayout,
@@ -96,7 +96,7 @@ const routes = [
   },
   {
     path: '/users',
-    name: 'UsersView',
+    name: 'Mijozlar',
     component: () => import('../views/Users/UsersView.vue'),
     meta: {
       layout: AppLayout,
