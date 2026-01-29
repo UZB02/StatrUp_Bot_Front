@@ -1,45 +1,69 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-      <h2 class="text-2xl font-bold text-center mb-4">Tizimga kirish</h2>
-
-      <!-- Telefon -->
-      <div class="mb-4">
-        <label class="block mb-1 text-sm font-medium text-gray-700">
-          Telefon raqami
-        </label>
-        <InputText
-          v-model="phone"
-          placeholder="+998901234567"
-          class="w-full"
-        />
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl shadow-slate-200/60 w-full max-w-md border border-slate-100">
+      
+      <div class="text-center mb-8">
+        <div class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+          <i class="pi pi-lock text-white text-xl"></i>
+        </div>
+        <h2 class="text-2xl font-extrabold text-slate-800">Xush kelibsiz!</h2>
+        <p class="text-slate-500 text-sm mt-1">Tizimga kirish uchun ma'lumotlarni kiriting</p>
       </div>
 
-      <!-- Parol -->
-      <div class="mb-4">
-        <label class="block mb-1 text-sm font-medium text-gray-700">
-          Parol
-        </label>
-        <InputText
-          v-model="password"
-          type="password"
-          placeholder="********"
-          class="w-full"
+      <form @submit.prevent="login" class="space-y-5">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold text-slate-700 ml-1">
+            Telefon raqami
+          </label>
+          <div class="p-input-icon-left w-full">
+            <i class="pi pi-phone text-slate-400" />
+            <InputText
+              v-model="phone"
+              placeholder="+998 90 123 45 67"
+              class="w-full !rounded-xl !border-slate-200 focus:!ring-2 focus:!ring-blue-500/20"
+              :class="{ 'p-invalid': error && !phone }"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold text-slate-700 ml-1">
+            Parol
+          </label>
+          <div class="p-input-icon-left w-full">
+            <i class="pi pi-shield text-slate-400" />
+            <InputText
+              v-model="password"
+              type="password"
+              placeholder="••••••••"
+              class="w-full !rounded-xl !border-slate-200 focus:!ring-2 focus:!ring-blue-500/20"
+              :class="{ 'p-invalid': error && !password }"
+              toggleMask
+            />
+          </div>
+        </div>
+
+        <transition name="fade">
+          <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg flex items-center gap-3">
+            <i class="pi pi-exclamation-circle text-red-500"></i>
+            <span class="text-red-600 text-xs font-medium">{{ error }}</span>
+          </div>
+        </transition>
+
+        <Button
+          type="submit"
+          :label="loading ? 'Tekshirilmoqda...' : 'Tizimga kirish'"
+          :loading="loading"
+          class="w-full !py-3 !rounded-xl !bg-blue-600 hover:!bg-blue-700 !border-none !transition-all !duration-300 shadow-lg shadow-blue-100"
         />
-      </div>
-
-      <Button
-        :label="loading ? 'Yuklanmoqda...' : 'Kirish'"
-        class="w-full"
-        :loading="loading"
-        @click="login"
-      />
-
-      <p v-if="error" class="mt-3 text-red-500 text-sm">{{ error }}</p>
+      </form>
+      
+      <p class="text-center mt-8 text-xs text-slate-400">
+        © {{ new Date().getFullYear() }} Barcha huquqlar himoyalangan
+      </p>
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref } from "vue";
 import InputText from "primevue/inputtext";
@@ -94,3 +118,11 @@ const login = async () => {
 };
 
 </script>
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>

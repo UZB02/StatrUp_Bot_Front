@@ -51,7 +51,7 @@
               <label class="text-sm font-bold text-slate-700 ml-1">Telefon raqam</label>
               <InputMask 
                 v-model="phone" 
-                mask="+998 99 999 99 99"
+                mask="+998999999999"
                 placeholder="+998 __ ___ __ __" 
                 class="w-full !py-4 !rounded-2xl !border-slate-100 !bg-slate-50"
                 :class="{ 'p-invalid': errors.phone }"

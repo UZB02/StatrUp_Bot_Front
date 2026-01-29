@@ -29,7 +29,7 @@
           <span class="text-sm font-semibold text-gray-700 leading-none group-hover:text-blue-600">
             {{ admin?.fullname || 'Admin' }}
           </span>
-          <span class="text-[10px] text-gray-400">Super Admin</span>
+          <span class="text-[10px] text-gray-400">{{admin?.role || 'admin'}}</span>
         </div>
         <i class="pi pi-chevron-down text-[10px] text-gray-400 group-hover:text-gray-600 transition-transform hidden sm:block"></i>
       </div>

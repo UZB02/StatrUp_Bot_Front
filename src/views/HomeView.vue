@@ -414,7 +414,7 @@ const exportExcel = async () => {
       params: {
         ...params(),
         page: 1,
-        limit: 1000000, // juda katta limit — barcha ma’lumotlarni olish uchun
+        limit: 1000000000000000, // juda katta limit — barcha ma’lumotlarni olish uchun
       },
     });
 
@@ -423,6 +423,7 @@ const exportExcel = async () => {
       "Sana": formatDate(i.createdAt),
       "Foydalanuvchi": i.user?.fullname || "-",
       "Mahsulot": i.items?.map(it => it.product?.name).join(", ") || "",
+      [`Miqdori (${i.items?.[0]?.product?.unit || ''})`]: i.items?.map(it => it.quantity).join(", ") || "",
       "Filial": i.filial?.name || "",
       "Turi": i.type === "earn" ? "Tushum" : "Xarajat",
       "Summa (so'm)": i.items?.reduce((sum, it) => sum + it.amount, 0) || 0,
@@ -446,7 +447,7 @@ const exportExcel = async () => {
 
     // Column widths
     ws["!cols"] = [
-      { wch: 5 }, { wch: 14 }, { wch: 25 }, { wch: 22 },
+      { wch: 5 }, { wch: 14 }, { wch: 25 }, { wch: 22 },{ wch: 22 },
       { wch: 20 }, { wch: 12 }, { wch: 16 },
     ];
 
@@ -463,8 +464,8 @@ const exportExcel = async () => {
 
     // Jami qatorlarini qo‘shish
     const totalRowIndex = rows.length + 2;
-    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "Jami Tushum", totalTushum]], { origin: `A${totalRowIndex}` });
-    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "", "Jami Xarajat", totalXarajat]], { origin: `A${totalRowIndex + 1}` });
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "","", "Jami Tushum", totalTushum]], { origin: `A${totalRowIndex}` });
+    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "","", "Jami Xarajat", totalXarajat]], { origin: `A${totalRowIndex + 1}` });
 
     // Summa ustunlarini raqam formatida ko‘rsatish
     [totalRowIndex, totalRowIndex + 1].forEach(rIndex => {

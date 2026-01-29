@@ -44,14 +44,14 @@ function navigate(path) {
   >
     <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white">
       <div v-if="!collapsed" class="flex items-center gap-2 overflow-hidden">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
-            <span class="text-white font-bold">B</span>
+        <div class="w-8 h-8  rounded-lg flex items-center justify-center shrink-0">
+            <span class="text-white font-bold"><img src="../../../logo (2).png" alt="Logo" class="rounded-full"></span>
         </div>
         <span class="font-bold text-gray-800 text-xl tracking-tight">Bonly.uz</span>
       </div>
       <div v-else class="w-full flex justify-center">
-         <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold">S</span>
+       <div class="w-8 h-8  rounded-lg flex items-center justify-center shrink-0">
+            <span class="text-white font-bold"><img src="../../../logo (2).png" alt="Logo" class="rounded-full"></span>
         </div>
       </div>
       

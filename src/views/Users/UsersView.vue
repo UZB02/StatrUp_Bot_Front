@@ -227,24 +227,36 @@ const openEdit = (user) => {
 /* 💾 UPDATE */
 const updateUser = async (user) => {
   try {
-    await api.put(`/users/${user._id}`, user);
+    const payload = {
+      fullname: user.fullname,
+      phone: user.phone,
+      autoNumber: user.autoNumber,
+      language: user.language,
+      cardNumber: user.cardNumber,
+    };
+
+    await api.put(`/users/${user._id}`, payload);
+
     toast.add({
       severity: "success",
       summary: "Saqlandi",
       detail: "Foydalanuvchi yangilandi",
       life: 3000,
     });
+
     editDialog.value = false;
     getUsers();
-  } catch {
+  } catch (err) {
     toast.add({
       severity: "error",
       summary: "Xatolik",
-      detail: "Saqlanmadi",
+      detail:
+        err.response?.data?.message || "Saqlanmadi",
       life: 3000,
     });
   }
 };
+
 
 /* 🗑 DELETE */
 const deleteUser = (user) => {

@@ -40,6 +40,17 @@
           class="w-full !rounded-2xl !bg-slate-50 !border-none !py-4 !px-5 focus:!ring-2 focus:!ring-indigo-500/20 transition-all font-bold text-slate-700"
         />
       </div>
+      <div class="space-y-2 group">
+  <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 group-focus-within:text-indigo-500 transition-colors">
+    <i class="pi pi-credit-card text-[10px]"></i> Karta raqami
+  </label>
+  <InputText
+    v-model="localUser.cardNumber"
+    placeholder="8600 1234 1234 1234"
+    class="w-full !rounded-2xl !bg-slate-50 !border-none !py-4 !px-5 focus:!ring-2 focus:!ring-indigo-500/20 transition-all font-bold text-slate-700"
+  />
+</div>
+
 
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-2 group">

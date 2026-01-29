@@ -46,7 +46,6 @@
               <label class="text-sm font-bold text-slate-700 ml-1">Telefon</label>
               <InputText 
                 v-model="phone" 
-                v-maska="'+998 ## ### ## ##'"
                 placeholder="+998 90 123 45 67" 
                 class="w-full !py-4 !rounded-2xl !border-slate-100 !bg-slate-50"
                 :class="{ 'p-invalid': submitted && !phone }"

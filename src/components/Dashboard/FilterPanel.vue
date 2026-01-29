@@ -64,7 +64,7 @@
       <div v-if="showFrom" class="space-y-2 group animate-fadein">
         <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
           <i class="pi pi-clock text-[10px]"></i> 
-          {{ filters.period === "day" ? "Sana" : "Boshlanish" }}
+          {{ filters.period === "day" ? "Sana" : "Sana" }}
         </label>
         <Calendar
           v-model="filters.from"

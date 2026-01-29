@@ -92,7 +92,7 @@
                 />
                 <Button
                   icon="pi pi-trash"
-                  @click="confirmDelete(data)"
+                  @click="confirmDelete(data._id)"
                   class="!w-10 !h-10 !rounded-xl !bg-slate-50 !text-slate-400 !border-none hover:!bg-rose-50 hover:!text-rose-600 transition-all"
                   v-tooltip.top="'O\'chirish'"
                 />
