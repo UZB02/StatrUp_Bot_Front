@@ -124,7 +124,6 @@
           class="!rounded-2xl !font-black !uppercase !text-[10px] !tracking-widest !text-slate-400 hover:!bg-slate-50 transition-all"
         />
       </div>
-      
       <Button
         label="Eksport Excel"
         icon="pi pi-file-excel"

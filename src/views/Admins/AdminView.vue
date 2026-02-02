@@ -202,7 +202,6 @@ const confirmDelete = (admin) => {
 const deleteAdmin = async () => {
   if (!selectedAdmin.value) return;
   deleting.value = true;
-  console.log(selectedAdmin.value._id);
   try {
     await api.delete(`/admin/${selectedAdmin.value}`);
     deleteDialog.value = false;

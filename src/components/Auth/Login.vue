@@ -13,10 +13,9 @@
       <form @submit.prevent="login" class="space-y-5">
         <div class="flex flex-col gap-2">
           <label class="text-sm font-semibold text-slate-700 ml-1">
-            Telefon raqami
+            <i class="pi pi-phone text-slate-400" /> Telefon raqami
           </label>
-          <div class="p-input-icon-left w-full">
-            <i class="pi pi-phone text-slate-400" />
+          <div class="w-full">
             <InputText
               v-model="phone"
               placeholder="+998 90 123 45 67"
@@ -28,10 +27,9 @@
 
         <div class="flex flex-col gap-2">
           <label class="text-sm font-semibold text-slate-700 ml-1">
-            Parol
+           <i class="pi pi-shield text-slate-400" /> Parol
           </label>
           <div class="p-input-icon-left w-full">
-            <i class="pi pi-shield text-slate-400" />
             <InputText
               v-model="password"
               type="password"
@@ -79,8 +77,6 @@ const router = useRouter();
 
 const login = async () => {
   error.value = "";
-  console.log(phone.value, password.value);
-
   if (!phone.value || !password.value) {
     error.value = "Telefon va parolni kiriting";
     return;
@@ -93,8 +89,6 @@ const login = async () => {
       phone: phone.value,
       password: password.value
     });
-
-    console.log(res);
     // Admin token saqlash
     sessionStorage.setItem("adminToken", res.data.token);
     sessionStorage.setItem("admin", JSON.stringify(res.data.admin));

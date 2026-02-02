@@ -19,513 +19,96 @@
     <!-- CHART -->
     <StatsChart :loading="loading" :chartData="chartData" />
     <!-- PRODUCT COMPARISON -->
-<ProductComparisonChart
-  v-if="filters.filial"
-  :loading="loading"
-  :chartData="productChartData"
-/>
-<ProductGrowth
-  v-if="productGrowth.length"
-  :data="productGrowth"
-/>
-
-
+    <ProductComparisonChart
+      v-if="filters.filial"
+      :loading="loading"
+      :chartData="productChartData"
+    />
+    <ProductGrowth v-if="productGrowth.length" :data="productGrowth" />
 
     <!-- LATEST TABLE -->
-  <LatestTable
+ <LatestTable
   :loading="loading"
   :latest="latest"
   :format="format"
   :formatDate="formatDate"
   :total="total"
   :rows="limit"
+  :page="page"
   @page="onPage"
 />
 
   </div>
 </template>
-
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import api from "@/utils/api.js";
+import { ref, watch, onMounted } from 'vue'
+import FilterPanel from '@/components/Dashboard/FilterPanel.vue'
+import SummaryGrid from '@/components/Dashboard/SummaryGrid.vue'
+import StatsChart from '@/components/Dashboard/StatsChart.vue'
+import ProductComparisonChart from '@/components/Dashboard/ProductComparisonChart.vue'
+import ProductGrowth from '@/components/Dashboard/ProductGrowth.vue'
+import LatestTable from '@/components/Dashboard/LatestTable.vue'
 
-/* Components */
-import FilterPanel from "@/components/Dashboard/FilterPanel.vue";
-import SummaryGrid from "@/components/Dashboard/SummaryGrid.vue";
-import StatsChart from "@/components/Dashboard/StatsChart.vue";
-import LatestTable from "@/components/Dashboard/LatestTable.vue";
-import ProductComparisonChart from "@/components/Dashboard/ProductComparisonChart.vue"
-import ProductGrowth from "@/components/Dashboard/ProductGrowth.vue"
+import { useDashboardFilters } from '@/composables/fordashboard/useDashboardFilters'
+import { useDashboardParams } from '@/composables/fordashboard/useDashboardParams'
+import { useDashboardSummary } from '@/composables/fordashboard/useDashboardSummary'
+import { useDashboardStats } from '@/composables/fordashboard/useDashboardStats'
+import { useDashboardLatest } from '@/composables/fordashboard/useDashboardLatest'
+import { useDashboardProducts } from '@/composables/fordashboard/useDashboardProducts'
+import { useDashboardExportExcel } from '@/composables/fordashboard/useDashboardExportExcel'
 
-/* STATE */
-const loading = ref(true);
-const filters = ref({
-  period: "year",
-  year: new Date().getFullYear(),
-  month: null,
-  from: null,
-  to: null,
-  filial: null,
-  product: null,
-});
-const periods = [
-  { label: "Yillik", value: "year" },
-  { label: "Oylik", value: "month" },
-  { label: "Haftalik", value: "week" },
-  { label: "Kunlik", value: "day" },
-];
-const months = [
-  { label: "Yanvar", value: 1 },
-  { label: "Fevral", value: 2 },
-  { label: "Mart", value: 3 },
-  { label: "Aprel", value: 4 },
-  { label: "May", value: 5 },
-  { label: "Iyun", value: 6 },
-  { label: "Iyul", value: 7 },
-  { label: "Avgust", value: 8 },
-  { label: "Sentyabr", value: 9 },
-  { label: "Oktyabr", value: 10 },
-  { label: "Noyabr", value: 11 },
-  { label: "Dekabr", value: 12 },
-];
+const loading = ref(true)
+const page = ref(1)
+const limit = ref(10)
 
-/* FILIAL & PRODUCT LISTS */
-const filials = ref([]);
-const products = ref([]);
-
-/* DATA */
-const summary = ref({ earn: 0, spend: 0, balance: 0, earnCount: 0, spendCount: 0 });
-const latest = ref([]);
-const chartData = ref({
-  labels: [],
-  datasets: [
-    { label: "Tushum", backgroundColor: "#22c55e", data: [] },
-    { label: "Xarajat", backgroundColor: "#ef4444", data: [] },
-  ],
-});
-
-/* PRODUCT COMPARISON CHART */
-const productChartData = ref({
-  labels: [],
-  datasets: [
-    {
-      label: "Tushum",
-      backgroundColor: "#3b82f6",
-      data: [],
-    },
-    {
-      label: "Xarajat",
-      backgroundColor: "#f97316",
-      data: [],
-    },
-  ],
-});
-
-
-const productGrowth = ref([]);
-
-/* PAGINATION (LATEST TABLE) */
-const page = ref(1);
-const limit = ref(10);
-const total = ref(0);
-
-
-/* HELPERS */
-const format = (n) => new Intl.NumberFormat("uz-UZ").format(n) + " so‘m";
-const formatDate = (d) => new Date(d).toLocaleDateString("uz-UZ");
-
-/* BUILD PARAMS (FIXED & SAFE) */
-const params = () => {
-  let from = filters.value.from ? new Date(filters.value.from) : null;
-  let to = filters.value.to ? new Date(filters.value.to) : null;
-
-  const period = filters.value.period;
-
-  // ===== DAY (1 kun to‘liq) =====
-  if (period === "day" && from) {
-    from.setHours(0, 0, 0, 0);
-
-    to = new Date(from);
-    to.setHours(23, 59, 59, 999);
-  }
-
-  // ===== WEEK (ISO week: Du → Ya) =====
-  else if (period === "week" && from) {
-    const day = from.getDay(); // 0 (Yak) - 6
-    const diffToMonday = (day + 6) % 7;
-
-    from.setDate(from.getDate() - diffToMonday);
-    from.setHours(0, 0, 0, 0);
-
-    to = new Date(from);
-    to.setDate(from.getDate() + 6);
-    to.setHours(23, 59, 59, 999);
-  }
-
-  // ===== MONTH =====
-  else if (period === "month") {
-    from = new Date(filters.value.year, filters.value.month - 1, 1);
-    from.setHours(0, 0, 0, 0);
-
-    to = new Date(filters.value.year, filters.value.month, 0);
-    to.setHours(23, 59, 59, 999);
-  }
-
-  // ===== YEAR =====
-  else if (period === "year") {
-    from = new Date(filters.value.year, 0, 1);
-    from.setHours(0, 0, 0, 0);
-
-    to = new Date(filters.value.year, 11, 31);
-    to.setHours(23, 59, 59, 999);
-  }
-
-  return {
-    period,
-    year: filters.value.year,
-    month: filters.value.month,
-    from: from ? from.toISOString() : null,
-    to: to ? to.toISOString() : null,
-    filial: filters.value.filial,
-    product: filters.value.product,
-
-    // 🔹 pagination
-    page: page.value,
-    limit: limit.value,
-  };
-};
-
-const loadProductGrowth = async () => {
-  if (!filters.value.filial) {
-    productGrowth.value = [];
-    return;
-  }
-
-  try {
-    const { data } = await api.get("/dashboard/product-growth", {
-      params: params(),
-    });
-
-    productGrowth.value = data;
-  } catch (err) {
-    console.error("Product growth load error:", err);
-  }
-};
-
-
-/* API LOAD FUNCTIONS */
-const loadFilials = async () => {
-  try {
-    const { data } = await api.get("/filials");
-    filials.value = data;
-  } catch (err) {
-    console.error("Filials load error:", err);
-  }
-};
-
-/* loadProducts funksiyasini filial filtrini qo'llab ishlash uchun yangilaymiz */
-const loadProducts = async () => {
-  try {
-    let url = "/products";
-    if (filters.value.filial) {
-      url = `/products/by-filial?filial=${filters.value.filial}`;
-    }
-    const { data } = await api.get(url);
-    products.value = data;
-  } catch (err) {
-    console.error("Products load error:", err);
-  }
-};
-
-const loadSummary = async () => {
-  try {
-    const { data } = await api.get("/dashboard/summary", { params: params() });
-    summary.value = data;
-    // console.log(summary.value);
-  } catch (err) {
-    console.error("Summary load error:", err);
-  }
-};
-
-const loadStats = async () => {
-  try {
-    const { data } = await api.get("/dashboard/stats", { params: params() });
-// console.log(data);
-    const period = filters.value.period;
-
-    /* ===== YEAR ===== */
-    if (period === "year") {
-      const monthNames = [
-        "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
-        "Iyul", "Avgust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"
-      ];
-
-      const earnData = new Array(12).fill(0);
-      const spendData = new Array(12).fill(0);
-
-      data.forEach((item) => {
-        const date = new Date(item.label);
-        const monthIndex = date.getMonth();
-        earnData[monthIndex] = item.earn;
-        spendData[monthIndex] = item.spend;
-      });
-
-      chartData.value.labels = monthNames;
-      chartData.value.datasets[0].data = earnData;
-      chartData.value.datasets[1].data = spendData;
-    }
-
-    /* ===== MONTH ===== */
-    else if (period === "month") {
-      const daysInMonth = new Date(
-        filters.value.year,
-        filters.value.month,
-        0
-      ).getDate();
-
-      const labels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-      const earnData = new Array(daysInMonth).fill(0);
-      const spendData = new Array(daysInMonth).fill(0);
-
-      data.forEach((item) => {
-        const date = new Date(item.label);
-        const dayIndex = date.getDate() - 1;
-        earnData[dayIndex] = item.earn;
-        spendData[dayIndex] = item.spend;
-      });
-
-      chartData.value.labels = labels;
-      chartData.value.datasets[0].data = earnData;
-      chartData.value.datasets[1].data = spendData;
-      console.log(data);
-    }
-
-/* ===== DAY (1 KUN) ===== */
-else if (period === "day") {
-  chartData.value.labels = data.map(i => {
-    // Bugungi sana
-    const today = new Date();
-    let [hours, minutes] = i.label.split(":").map(Number);
-
-    // UTC → O‘zbekiston vaqti (+5)
-    hours += 5;
-
-    // Agar soat 24 dan oshsa, keyingi kun
-    if (hours >= 24) {
-      hours -= 24;
-      today.setDate(today.getDate() + 1);
-    }
-
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
-
-    return date.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
-  });
-
-  chartData.value.datasets[0].data = data.map(i => i.earn);
-  chartData.value.datasets[1].data = data.map(i => i.spend);
+const onPage = async (event) => {
+  page.value = event.page + 1
+  limit.value = event.rows
+  await loadLatest() // <--- yangi sahifa uchun so‘rov yuborish
 }
 
 
+const { filters, periods, months, filials, products, loadFilials, loadProducts } =
+  useDashboardFilters()
 
-    /* ===== WEEK ===== */
-    else if (period === "week") {
-      const labels = ["Du", "Se", "Cho", "Pa", "Ju", "Sha", "Ya"];
-      const earnData = new Array(7).fill(0);
-      const spendData = new Array(7).fill(0);
+const params = useDashboardParams(filters, page, limit)
 
-      data.forEach((item) => {
-        const date = new Date(item.label);
-        const dayIndex = (date.getDay() + 6) % 7; // ISO week
-        earnData[dayIndex] = item.earn;
-        spendData[dayIndex] = item.spend;
-      });
+const { summary, loadSummary } = useDashboardSummary(params)
+const { chartData, loadStats } = useDashboardStats(params, filters)
+const { latest, total, loadLatest } = useDashboardLatest(params)
+const { productChartData, productGrowth, loadProductComparison, loadProductGrowth } =
+  useDashboardProducts(params, filters)
 
-      chartData.value.labels = labels;
-      chartData.value.datasets[0].data = earnData;
-      chartData.value.datasets[1].data = spendData;
-    }
-  } catch (err) {
-    console.error("Chart load error:", err);
-  }
-};
+const format = (n) => new Intl.NumberFormat('uz-UZ').format(n) + ' so‘m'
+const formatDate = (d) => new Date(d).toLocaleDateString('uz-UZ')
 
+const { exportExcel } = useDashboardExportExcel(params, formatDate)
 
-const loadLatest = async () => {
-  try {
-    const { data } = await api.get("/dashboard/latest", {
-      params: params(), // page va limit backendga boradi
-    });
-    console.log(data);
-
-    // data.data => tranzaksiyalar, data.pagination => total
-    latest.value = data.data.map((tx) => {
-      const productNames = tx.items?.map((i) => i.product?.name).join(", ");
-      const totalAmount = tx.items?.reduce((sum, i) => sum + i.amount, 0);
-
-      return {
-        ...tx,
-        productName: productNames || "",
-        amount: totalAmount || 0,
-        filialName: tx.filial?.name || "",
-      };
-    });
-
-    // pagination uchun total qaytariladi
-    total.value = data.pagination.total;
-  } catch (err) {
-    console.error("Latest load error:", err);
-  }
-};
-
-const loadProductComparison = async () => {
-  if (!filters.value.filial) {
-    productChartData.value.labels = [];
-    productChartData.value.datasets[0].data = [];
-    productChartData.value.datasets[1].data = [];
-    return;
-  }
-
-  try {
-    const { data } = await api.get("/dashboard/product-comparison", {
-      params: params(),
-    });
-
-    productChartData.value.labels = data.map(i => i.productName);
-    productChartData.value.datasets[0].data = data.map(i => i.earn);
-    productChartData.value.datasets[1].data = data.map(i => i.spend);
-
-  } catch (err) {
-    console.error("Product comparison load error:", err);
-  }
-};
-
-
-const onPage = (e) => {
-  page.value = e.page + 1; // PrimeVue 0-based
-  limit.value = e.rows;
-  loadLatest();
-};
-
-
-const exportExcel = async () => {
-  try {
-    // 🔹 Hamma ma’lumotni olish uchun limit va page’ni olib tashlaymiz
-    const { data } = await api.get("/dashboard/latest", {
-      params: {
-        ...params(),
-        page: 1,
-        limit: 1000000000000000, // juda katta limit — barcha ma’lumotlarni olish uchun
-      },
-    });
-
-    const rows = data.data.map((i, index) => ({
-      "№": index + 1,
-      "Sana": formatDate(i.createdAt),
-      "Foydalanuvchi": i.user?.fullname || "-",
-      "Mahsulot": i.items?.map(it => it.product?.name).join(", ") || "",
-      [`Miqdori (${i.items?.[0]?.product?.unit || ''})`]: i.items?.map(it => it.quantity).join(", ") || "",
-      "Filial": i.filial?.name || "",
-      "Turi": i.type === "earn" ? "Tushum" : "Xarajat",
-      "Summa (so'm)": i.items?.reduce((sum, it) => sum + it.amount, 0) || 0,
-    }));
-
-    const XLSX = await import("xlsx");
-
-    const ws = XLSX.utils.json_to_sheet(rows, { origin: "A2", skipHeader: true });
-
-    const headers = Object.keys(rows[0]);
-    XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
-
-    // Header bold va markazlashtirish
-    headers.forEach((_, colIndex) => {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-      ws[cellAddress].s = {
-        font: { bold: true },
-        alignment: { horizontal: "center" },
-      };
-    });
-
-    // Column widths
-    ws["!cols"] = [
-      { wch: 5 }, { wch: 14 }, { wch: 25 }, { wch: 22 },{ wch: 22 },
-      { wch: 20 }, { wch: 12 }, { wch: 16 },
-    ];
-
-    // Freeze header
-    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
-
-    // Jami hisoblash
-    let totalTushum = 0;
-    let totalXarajat = 0;
-    rows.forEach(row => {
-      if (row.Turi === "Tushum") totalTushum += row["Summa (so'm)"];
-      else totalXarajat += row["Summa (so'm)"];
-    });
-
-    // Jami qatorlarini qo‘shish
-    const totalRowIndex = rows.length + 2;
-    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "","", "Jami Tushum", totalTushum]], { origin: `A${totalRowIndex}` });
-    XLSX.utils.sheet_add_aoa(ws, [["", "", "", "", "","", "Jami Xarajat", totalXarajat]], { origin: `A${totalRowIndex + 1}` });
-
-    // Summa ustunlarini raqam formatida ko‘rsatish
-    [totalRowIndex, totalRowIndex + 1].forEach(rIndex => {
-      const sumCellAddress = XLSX.utils.encode_cell({ r: rIndex - 1, c: 6 });
-      if (ws[sumCellAddress]) {
-        ws[sumCellAddress].s = {
-          numFmt: "#,##0 \"so'm\"",
-          alignment: { horizontal: "right" },
-          font: { bold: true },
-        };
-      }
-    });
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-
-    XLSX.writeFile(wb, "transactions.xlsx");
-  } catch (err) {
-    console.error("Export Excel error:", err);
-  }
-};
-
-/* RELOAD ALL DATA */
 const reloadAll = async () => {
-  loading.value = true;
-  try {
-    await Promise.all([
-      loadSummary(),
-      loadStats(),
-      loadLatest(),
-      loadProductComparison(),
-      loadProductGrowth(),
-    ]);
-  } catch (err) {
-    console.error("Dashboard load error:", err);
-  } finally {
-    loading.value = false;
-  }
-};
+  loading.value = true
+  await Promise.all([
+    loadSummary(),
+    loadStats(),
+    loadLatest(),
+    loadProductComparison(),
+    loadProductGrowth(),
+  ])
+  loading.value = false
+}
 
-/* WATCH FILTERS */
-watch(filters, async (newFilters, oldFilters) => {
-  page.value = 1;
+watch(
+  filters,
+  async () => {
+    page.value = 1
+    await loadProducts()
+    await reloadAll()
+  },
+  { deep: true },
+)
 
-
-    await loadProducts();
-
-  // Dashboard ma'lumotlarini yangilash
-  await reloadAll();
-}, { deep: true });
-
-
-/* ON MOUNT */
 onMounted(async () => {
-  loading.value = true;
-  try {
-    await Promise.all([loadFilials(), loadProducts()]);
-    await reloadAll();
-  } finally {
-    loading.value = false;
-  }
-});
+  await loadFilials()
+  await loadProducts()
+  await reloadAll()
+})
 </script>

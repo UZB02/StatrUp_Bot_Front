@@ -112,13 +112,15 @@
       </div>
 
       <div class="mt-8 flex justify-center border-t border-slate-50 pt-6">
-        <Paginator
-          :rows="rows"
-          :totalRecords="total"
-          :rowsPerPageOptions="[5, 10, 20]"
-          class="!bg-transparent !border-none !p-0 custom-paginator"
-          @page="$emit('page', $event)"
-        />
+    <Paginator
+  :rows="rows"
+  :totalRecords="total"
+  :first="(page - 1) * rows"
+  :rowsPerPageOptions="[5, 10, 20, total]"
+  class="!bg-transparent !border-none !p-0 custom-paginator"
+  @page="$emit('page', $event)"
+/>
+
       </div>
     </div>
   </div>
@@ -151,6 +153,10 @@ defineProps({
   rows: {
     type: Number,
     default: 10,
+  },
+    page: {
+    type: Number,
+    default: 1,
   },
 });
 
