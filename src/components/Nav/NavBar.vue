@@ -2,7 +2,7 @@
   <header
     class="sticky top-0 z-40 flex items-center justify-between
            bg-white/80 backdrop-blur-md border-b border-gray-100
-           px-4 md:px-8 h-16 transition-all duration-300"
+           px-4 md:px-6 h-14 transition-all duration-300"
   >
     <div class="flex items-center gap-4">
       <Button

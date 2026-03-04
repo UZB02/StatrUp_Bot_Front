@@ -1,32 +1,32 @@
 <template>
   <div class=" bg-[#f8fafc] pb-12">
     <div class=" bg-white/80 backdrop-blur-md border-b border-slate-200/60">
-      <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-5">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-3">
         <div class="flex items-center justify-between gap-4">
-          <div class="space-y-1">
-            <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Adminlar</h1>
+          <div class="space-y-0.5">
+            <h1 class="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Adminlar</h1>
             <div class="flex items-center gap-2 text-slate-500">
-              <span class="inline-flex items-center justify-center px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
+              <span class="inline-flex items-center justify-center px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[9px] font-bold uppercase tracking-wider">
                 {{ admins.length }} nafar
               </span>
-              <p class="text-xs md:text-sm font-medium hidden sm:block italic">tizim boshqaruvchilari</p>
+              <p class="text-[10px] md:text-xs font-medium hidden sm:block italic">tizim boshqaruvchilari</p>
             </div>
           </div>
           
           <Button 
             @click="goCreate"
-            class="!bg-emerald-600 !border-none !rounded-2xl !h-12 !w-12 md:!w-auto md:!px-6 !shadow-lg !shadow-emerald-200 hover:!scale-105 active:scale-95 transition-all"
+            class="!bg-emerald-600 !border-none !rounded-xl !h-10 !w-10 md:!w-auto md:!px-5 !shadow-md !shadow-emerald-100 hover:!scale-105 active:scale-95 transition-all"
           >
-            <i class="pi pi-plus font-bold"></i>
-            <span class="hidden md:inline ml-2 font-bold whitespace-nowrap text-white">Yangi Admin</span>
+            <i class="pi pi-plus font-bold text-sm"></i>
+            <span class="hidden md:inline ml-2 font-bold whitespace-nowrap text-white text-xs">Yangi Admin</span>
           </Button>
         </div>
       </div>
     </div>
 
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 mt-8">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 mt-6">
       
-      <div class="hidden md:block bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
+      <div class="hidden md:block bg-white rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-100 overflow-hidden">
         <DataTable
           :value="admins"
           :loading="loading"
@@ -46,15 +46,15 @@
           
           <Column header="F.I.Sh" class="w-[40%]">
             <template #body="{ data }">
-              <div class="flex items-center gap-4 py-2">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-100 ring-2 ring-white">
-                  <span class="text-white font-bold text-sm tracking-tighter">
+              <div class="flex items-center gap-3 py-1">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-100 ring-2 ring-white">
+                  <span class="text-white font-bold text-xs tracking-tighter">
                     {{ data.fullname.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() }}
                   </span>
                 </div>
                 <div>
-                  <div class="font-bold text-slate-800 leading-none mb-1">{{ data.fullname }}</div>
-                  <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-widest opacity-70">ID: {{ data._id.slice(-6) }}</div>
+                  <div class="font-bold text-slate-800 leading-none mb-0.5 text-sm">{{ data.fullname }}</div>
+                  <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest opacity-70">ID: {{ data._id.slice(-6) }}</div>
                 </div>
               </div>
             </template>
@@ -63,10 +63,10 @@
           <Column header="Bog'lanish">
             <template #body="{ data }">
               <div class="flex items-center gap-2 group">
-                <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
-                   <i class="pi pi-phone text-xs"></i>
+                <div class="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                   <i class="pi pi-phone text-[10px]"></i>
                 </div>
-                <span class="text-sm font-semibold text-slate-600">{{ data.phone }}</span>
+                <span class="text-xs font-semibold text-slate-600">{{ data.phone }}</span>
               </div>
             </template>
           </Column>
@@ -87,13 +87,13 @@
                 <Button
                   icon="pi pi-pencil"
                   @click="editAdmin(data._id)"
-                  class="!w-10 !h-10 !rounded-xl !bg-slate-50 !text-slate-600 !border-none hover:!bg-amber-50 hover:!text-amber-600 transition-all"
+                  class="!w-8 !h-8 !rounded-lg !bg-slate-50 !text-slate-600 !border-none hover:!bg-amber-50 hover:!text-amber-600 transition-all"
                   v-tooltip.top="'Tahrirlash'"
                 />
                 <Button
                   icon="pi pi-trash"
                   @click="confirmDelete(data._id)"
-                  class="!w-10 !h-10 !rounded-xl !bg-slate-50 !text-slate-400 !border-none hover:!bg-rose-50 hover:!text-rose-600 transition-all"
+                  class="!w-8 !h-8 !rounded-lg !bg-slate-50 !text-slate-400 !border-none hover:!bg-rose-50 hover:!text-rose-600 transition-all"
                   v-tooltip.top="'O\'chirish'"
                 />
               </div>
@@ -102,31 +102,31 @@
         </DataTable>
       </div>
 
-      <div class="grid gap-4 md:hidden">
+      <div class="grid gap-3 md:hidden">
         <div v-for="admin in admins" :key="admin._id" 
-             class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 active:scale-[0.98] transition-transform">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-4">
-               <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-bold">
+             class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 active:scale-[0.98] transition-transform">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+               <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold text-sm">
                   {{ admin.fullname.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() }}
                </div>
                <div>
-                 <h3 class="font-bold text-slate-900 leading-tight">{{ admin.fullname }}</h3>
-                 <span class="text-xs font-bold text-emerald-500 uppercase tracking-widest">{{ admin.role }}</span>
+                 <h3 class="font-bold text-slate-900 leading-tight text-sm">{{ admin.fullname }}</h3>
+                 <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{{ admin.role }}</span>
                </div>
             </div>
           </div>
           
-          <div class="flex items-center gap-3 py-3 px-4 bg-slate-50 rounded-2xl mb-4">
-            <i class="pi pi-phone text-slate-400"></i>
-            <span class="text-sm font-bold text-slate-700">{{ admin.phone }}</span>
+          <div class="flex items-center gap-2 py-2 px-3 bg-slate-50 rounded-xl mb-3">
+            <i class="pi pi-phone text-slate-400 text-xs"></i>
+            <span class="text-xs font-bold text-slate-700">{{ admin.phone }}</span>
           </div>
-
-          <div class="flex gap-3">
+ 
+          <div class="flex gap-2">
             <Button icon="pi pi-pencil" label="Tahrirlash" @click="editAdmin(admin._id)" 
-                    class="flex-1 !bg-slate-100 !text-slate-700 !border-none !rounded-xl !py-3 font-bold" />
+                    class="flex-1 !bg-slate-100 !text-slate-700 !border-none !rounded-lg !py-2 !text-xs font-bold" />
             <Button icon="pi pi-trash" @click="confirmDelete(admin)" 
-                    class="!bg-rose-50 !text-rose-500 !border-none !rounded-xl !w-14" />
+                    class="!bg-rose-50 !text-rose-500 !border-none !rounded-lg !w-10 !h-8" />
           </div>
         </div>
       </div>
@@ -224,11 +224,11 @@ onMounted(fetchAdmins);
 :deep(.p-datatable-modern .p-datatable-thead > tr > th) {
   background: #f8fafc;
   color: #64748b;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1.5rem 1rem;
+  letter-spacing: 0.1em;
+  padding: 1rem 0.75rem;
   border: none;
 }
 
@@ -242,7 +242,7 @@ onMounted(fetchAdmins);
 }
 
 :deep(.p-datatable-modern .p-datatable-tbody > tr > td) {
-  padding: 1rem;
+  padding: 0.65rem 0.75rem;
   border: none;
 }
 

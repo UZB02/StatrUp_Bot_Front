@@ -20,6 +20,12 @@ export function useAuth() {
     return roles.includes(admin.value.role)
   }
 
+  const hasPermission = (permission) => {
+    if (!admin.value) return false
+    if (admin.value.role === 'superadmin') return true
+    return admin.value.permissions?.includes(permission)
+  }
+
   const logout = () => {
     sessionStorage.removeItem('adminToken')
     sessionStorage.removeItem('admin')
@@ -32,6 +38,7 @@ export function useAuth() {
     role,
     isAuthenticated,
     hasRole,
+    hasPermission,
     logout,
   }
 }

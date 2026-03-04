@@ -1,83 +1,106 @@
 <template>
-  <div class="p-4 md:p-8 max-w-[1400px] mx-auto space-y-8">
+  <div class="h-screen bg-[#f1f5f9] flex flex-col overflow-hidden font-sans">
     
-    <UsersHeader
-      v-model:modelValue="search"
+    <!-- 🏢 POS HEADER COMPONENT -->
+    <UsersViewHeader 
+      :users-count="users.length" 
+      :admin-name="admin?.fullname" 
+      :loading="loading"
       @refresh="getUsers"
     />
 
-    <div class="relative group" @click="setFocus">
-      <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-[2rem] blur opacity-10 group-focus-within:opacity-25 transition duration-500"></div>
+    <!-- 🔵 MAIN POS WORKSPACE -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden p-2 lg:p-3 gap-2 lg:gap-3">
       
-      <div class="relative bg-white rounded-[2rem] border border-slate-100 p-2 shadow-sm flex items-center gap-3 h-[76px] cursor-text">
-        <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-focus-within:text-blue-500 transition-colors">
-          <i class="pi pi-qrcode text-2xl" :class="{ 'animate-pulse text-blue-500': isScanning }"></i>
-        </div>
+      <!-- 📁 LEFT SIDE: USER LIST & SEARCH -->
+      <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         
-        <div class="relative flex-1 flex items-center h-full">
-          <input
-            ref="scanInputEl"
-            v-model="scanInput"
-            class="absolute opacity-0 pointer-events-none w-0 h-0"
-            style="left: -1000px;"
-            autocomplete="off"
+        <!-- 🔍 SCAN & SEARCH COMPONENT -->
+        <UsersControlPanel
+          v-model:search-value="search"
+          :is-scanning="isScanning"
+          :scan-display="scanInputDisplay"
+          @scanner-click="setFocus"
+        >
+          <template #scanner-input>
+            <input ref="scanInputEl" v-model="scanInput" class="absolute opacity-0 pointer-events-none w-0 h-0" autocomplete="off" />
+          </template>
+        </UsersControlPanel>
+
+        <!-- 📑 USERS TABLE -->
+        <div class="flex-1 overflow-hidden">
+          <UsersTable
+            :users="users"
+            :loading="loading"
+            @edit="openEdit"
+            @delete="confirmDelete"
+            @select="selectUser"
+            @updated="onTransactionCompleted"
+            class="h-full"
+            :selected-id="selectedUser?._id"
           />
-
-          <div class="flex-1">
-            <div v-if="isScanning" class="flex items-center gap-2">
-              <span class="text-blue-600 font-bold animate-pulse">Qidirilmoqda...</span>
-            </div>
-            
-            <div v-else-if="scanInputDisplay" class="text-blue-500 font-bold text-lg flex items-center gap-2">
-              <i class="pi pi-check-circle animate-bounce"></i>
-              <span>{{ scanInputDisplay }}</span>
-            </div>
-            
-            <div v-else class="text-slate-300 font-bold">
-              QR kodni skanerlang yoki ID kiriting...
-            </div>
-          </div>
         </div>
+      </div>
 
-        <div v-if="isScanning" class="pr-4 flex items-center gap-2">
-           <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-        </div>
-        
-        <Button 
-          v-else
-          icon="pi pi-bolt" 
-          text 
-          rounded 
-          class="!text-slate-300 mr-2"
-          v-tooltip.left="'Skaner kutish rejimi'"
+      <!-- 💳 RIGHT SIDE: TRANSACTION TERMINAL (DESKTOP) -->
+      <div class="hidden lg:flex w-[320px] xl:w-[380px] flex-col gap-3 overflow-hidden">
+        <UserTransactionTerminal
+          v-if="selectedUser"
+          :user="selectedUser"
+          @close="selectedUser = null"
+          @transaction="openTransaction"
+          @edit="openEdit"
+          @delete="confirmDelete"
         />
+
+        <!-- EMPTY STATE (DESKTOP) -->
+        <div v-else class="h-full bg-white/50 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-center p-8">
+          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm border border-slate-100 text-slate-200">
+            <i class="pi pi-user text-xl"></i>
+          </div>
+          <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">
+            Mijozni tanlang yoki skanerlang
+          </p>
+        </div>
       </div>
     </div>
 
-    <div class="relative min-h-[400px]">
-      <UsersTable
-        :users="users"
-        :loading="loading"
-        @edit="openEdit"
-        @delete="deleteUser"
-        @updated="onTransactionCompleted"
-      />
-    </div>
+    <!-- 💳 MOBILE TRANSACTION DRAWER -->
+    <Dialog 
+      v-model:visible="mobileTerminalVisible" 
+      position="bottom" 
+      :modal="true" 
+      :dismissableMask="true" 
+      class="w-full !max-w-none !m-0 !rounded-t-[2.5rem] !rounded-b-none lg:!hidden !border-none shadow-2xl"
+      :pt="{
+        header: { class: '!hidden' },
+        content: { class: '!p-0' }
+      }"
+    >
+      <div class="p-5 bg-white rounded-t-[2.5rem] pb-8">
+        <div @click="mobileTerminalVisible = false" class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6 cursor-pointer"></div>
+        <UserTransactionTerminal
+          v-if="selectedUser"
+          :user="selectedUser"
+          @close="mobileTerminalVisible = false"
+          @transaction="openTransaction"
+          @edit="openEdit"
+          @delete="confirmDelete"
+        />
+      </div>
+    </Dialog>
 
-    <UserEditDialog v-model:visible="editDialog" :user="editUser" @save="updateUser" />
+    <!-- MODALS -->
+    <UserEditDialog v-model:visible="editDialog" :user="editUser" @save="updateUserAndClose" />
+    <AddBalanceDialog v-model="addDialog" :user="selectedUser" @saved="onTransactionCompleted" />
+    <SpendBalanceDialog v-model="spendDialog" :user="selectedUser" @saved="onTransactionCompleted" />
 
-    <Dialog v-model:visible="deleteDialog" modal :closable="false" class="w-[95vw] max-w-[420px] !rounded-[2.5rem] !border-none !overflow-hidden shadow-2xl">
+    <Dialog v-model:visible="deleteDialog" modal header="Mijozni o'chirish" class="w-[90vw] max-w-[400px]">
       <div class="p-4 text-center">
-        <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <i class="pi pi-exclamation-triangle text-3xl"></i>
-        </div>
-        <h3 class="text-xl font-black text-slate-900 mb-2">Foydalanuvchini o‘chirish</h3>
-        <p class="text-slate-500 font-medium mb-6">
-          <span class="font-black text-slate-800">"{{ selectedUser?.fullname }}"</span> hisobi o‘chiriladi.
-        </p>
+        <p class="text-slate-600 font-bold mb-6">"{{ selectedUser?.fullname }}" tizimdan o'chirilsinmi?</p>
         <div class="flex gap-3">
-          <Button label="Bekor qilish" text class="flex-1 !py-4 !rounded-2xl !font-bold !text-slate-400" @click="deleteDialog = false" />
-          <Button label="O‘chirish" severity="danger" class="flex-1 !py-4 !rounded-2xl !bg-rose-500 !border-none !text-white !font-black" :loading="deleting" @click="deleteUsermain" />
+          <button class="flex-1 py-3.5 bg-slate-50 rounded-xl border-none text-slate-400 font-black text-[11px] uppercase cursor-pointer" @click="deleteDialog = false">Yo'q</button>
+          <button class="flex-1 py-3.5 bg-rose-500 rounded-xl border-none text-white font-black text-[11px] uppercase cursor-pointer shadow-lg shadow-rose-500/10" :disabled="deleting" @click="handleDelete">O'chirish</button>
         </div>
       </div>
     </Dialog>
@@ -87,154 +110,85 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
-import api from "@/utils/api.js";
-import { useToast } from "primevue/usetoast";
+import { ref, onMounted } from "vue";
 import Dialog from "primevue/dialog";
-import Button from "primevue/button";
 import Toast from 'primevue/toast';
 
-import UsersHeader from "@/components/Users/UsersHeader.vue";
+// Components
 import UsersTable from "@/components/Users/UsersTable.vue";
 import UserEditDialog from "@/components/Users/UserEditDialog.vue";
+import AddBalanceDialog from "@/components/Users/AddBalanceDialog.vue";
+import SpendBalanceDialog from "@/components/Users/SpendBalanceDialog.vue";
+import UsersViewHeader from "@/components/Users/UsersViewHeader.vue";
+import UsersControlPanel from "@/components/Users/UsersControlPanel.vue";
+import UserTransactionTerminal from "@/components/Users/UserTransactionTerminal.vue";
 
-const users = ref([]);
-const loading = ref(false);
-const search = ref("");
-const scanInput = ref("");
-const scanInputDisplay = ref(""); 
-const isScanning = ref(false);
-const scanInputEl = ref(null);
+// Composables
+import { useUsers } from "@/composables/useUsers";
+import { useScanner } from "@/composables/useScanner";
+
+const admin = ref(JSON.parse(sessionStorage.getItem('admin') || '{}'));
+
+const { 
+  users, loading, search, selectedUser, 
+  getUsers, findUser, refreshUser, updateUser, deleteUserById 
+} = useUsers();
+
+const { 
+  scanInput, scanInputDisplay, isScanning, scanInputEl, setFocus 
+} = useScanner((userId) => findUser(userId, "userId"));
 
 const editDialog = ref(false);
 const editUser = ref({});
 const deleteDialog = ref(false);
 const deleting = ref(false);
-const selectedUser = ref(null);
+const mobileTerminalVisible = ref(false);
+const addDialog = ref(false);
+const spendDialog = ref(false);
 
-const toast = useToast();
-
-const setFocus = () => {
-  scanInputEl.value?.focus();
-};
-
-const getUsers = async () => {
-  try {
-    loading.value = true;
-    const { data } = await api.get("/users");
-    users.value = data;
-  } catch {
-    toast.add({ severity: "error", summary: "Xatolik", detail: "Foydalanuvchilar yuklanmadi", life: 3000 });
-  } finally { loading.value = false; }
-};
-
-/* 🔹 REAL-TIME SEARCH (YUQORI QISMDAGI SEARCH UCHUN) */
-let timeout;
-watch(search, (val) => {
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    if (!val) return getUsers();
-    findUser(val);
-  }, 1200);
-});
-
-/* 🔹 FIND USER */
-const findUser = async (query, type = null) => {
-  try {
-    loading.value = true;
-    let params = {};
-
-    if (type === "userId") params.userId = query;
-    else if (query.startsWith("+") || query.startsWith("998")) params.phone = query;
-    else if (/^[A-Za-z\s]+$/.test(query)) params.fullname = query;
-    else if (/^\d{8,20}$/.test(query)) params.cardNumber = query; // ✅ Faqat raqam (8-20 xona)
-    else params.autoNumber = query;
-
-    const { data } = await api.get("/users/find", { params });
-    users.value = [data];
-    new Audio("/beep.mp3").play().catch(() => {});
-
-    setTimeout(() => {
-      scanInputDisplay.value = "";
-    }, 2000);
-
-  } catch (err) {
-    users.value = [];
-    new Audio("/error.mp3").play().catch(() => {});
-    scanInputDisplay.value = "";
-    toast.add({ severity: "error", summary: "Xatolik", detail: "Foydalanuvchi topilmadi", life: 3000 });
-  } finally {
-    loading.value = false;
+const selectUser = (user) => {
+  selectedUser.value = user;
+  if (window.innerWidth < 1024) {
+    mobileTerminalVisible.value = true;
   }
 };
 
-/* 🔹 SCANNER LOGIC */
-let scanTimeout = null;
-watch(scanInput, (val) => {
-  if (!val || isScanning.value) return;
-
-  clearTimeout(scanTimeout);
-  scanTimeout = setTimeout(async () => {
-    const rawData = scanInput.value.trim();
-    if (rawData.length < 10) return;
-
-    isScanning.value = true;
-    const tempVal = rawData;
-    scanInput.value = ""; 
-
-    try {
-      let userId = null;
-      try {
-        const parsed = JSON.parse(tempVal);
-        userId = parsed.userId;
-      } catch (e) {
-        const match = tempVal.match(/userId[^a-f\d]+([a-f\d]{24})/i);
-        if (match && match[1]) userId = match[1];
-      }
-
-      if (userId) {
-        // Operatorga qaysi ID topilganini bildirish uchun qisqa matn
-        scanInputDisplay.value = "Topildi: " + userId.substring(0, 8) + "...";
-        await findUser(userId, "userId");
-      } else {
-        isScanning.value = false;
-        scanInput.value = "";
-      }
-    } finally {
-      isScanning.value = false;
-      await nextTick();
-      setFocus();
-    }
-  }, 150); 
-});
-
-const openEdit = (user) => { editUser.value = { ...user }; editDialog.value = true; };
-const updateUser = async (user) => {
-  try {
-    await api.put(`/users/${user._id}`, user);
-    toast.add({ severity: "success", summary: "Saqlandi", life: 3000 });
-    editDialog.value = false;
-    getUsers();
-  } catch (err) {
-    toast.add({ severity: "error", summary: "Xato", detail: "Saqlanmadi", life: 3000 });
-  }
+const openTransaction = (type) => {
+  if (type === 'add') addDialog.value = true;
+  else spendDialog.value = true;
 };
 
-const deleteUser = (user) => { selectedUser.value = user; deleteDialog.value = true; };
-const deleteUsermain = async () => {
+const openEdit = (user) => { 
+  editUser.value = { ...user }; 
+  editDialog.value = true; 
+};
+
+const updateUserAndClose = async (userData) => {
+  const success = await updateUser(userData);
+  if (success) editDialog.value = false;
+};
+
+const confirmDelete = (user) => { 
+  selectedUser.value = user; 
+  deleteDialog.value = true; 
+};
+
+const handleDelete = async () => {
   deleting.value = true;
-  try {
-    await api.delete(`/users/${selectedUser.value._id}`);
-    toast.add({ severity: "success", summary: "O‘chirildi", life: 3000 });
+  const success = await deleteUserById(selectedUser.value._id);
+  if (success) {
     deleteDialog.value = false;
-    getUsers();
-  } finally {
-    deleting.value = false;
-    selectedUser.value = null;
+    mobileTerminalVisible.value = false;
   }
+  deleting.value = false;
 };
 
-const onTransactionCompleted = () => getUsers();
+const onTransactionCompleted = () => {
+  getUsers();
+  if(selectedUser.value) {
+    refreshUser(selectedUser.value._id);
+  }
+};
 
 onMounted(async () => {
   await getUsers();
@@ -244,5 +198,4 @@ onMounted(async () => {
 
 <style scoped>
 :deep(.p-dialog-mask) { backdrop-filter: blur(4px); }
-:deep(.p-dialog-content) { padding: 2rem !important; }
 </style>

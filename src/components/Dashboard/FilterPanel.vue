@@ -1,28 +1,28 @@
 <template>
-  <div class="w-full bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 border border-slate-100 p-8 transition-all duration-300">
+  <div class="w-full bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-5 transition-all duration-300">
     
-    <div class="flex items-center gap-5 mb-8">
+    <div class="flex items-center gap-4 mb-5">
       <div class="relative">
-        <div class="absolute inset-0 bg-blue-500 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
-        <div class="relative w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg text-white">
-          <i class="pi pi-filter text-2xl"></i>
+        <div class="absolute inset-0 bg-blue-500 rounded-xl blur-md opacity-20 animate-pulse"></div>
+        <div class="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md text-white">
+          <i class="pi pi-filter text-lg"></i>
         </div>
       </div>
       <div>
-        <h3 class="text-2xl font-black text-slate-800 tracking-tight leading-none">
+        <h3 class="text-lg font-black text-slate-800 tracking-tight leading-none">
           Ma'lumotlarni filtrlash
         </h3>
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mt-2">
-          Kerakli davr, filial va mahsulotni tanlang
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+          Davr, filial va mahsulot
         </p>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
       
-      <div class="space-y-2 group">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
-          <i class="pi pi-calendar-plus text-[10px]"></i> Davr
+      <div class="space-y-1.5 group">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-calendar-plus text-[9px]"></i> Davr
         </label>
         <Dropdown
           v-model="filters.period"
@@ -30,26 +30,26 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Davrni tanlang"
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold"
+          class="w-full !rounded-xl !bg-slate-50 !border-none !py-0.5 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold text-sm"
         />
       </div>
 
-      <div v-if="showYear" class="space-y-2 group animate-fadein">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-          <i class="pi pi-calendar text-[10px]"></i> Yil
+      <div v-if="showYear" class="space-y-1.5 group animate-fadein">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+          <i class="pi pi-calendar text-[9px]"></i> Yil
         </label>
         <InputNumber
           v-model="filters.year"
           :useGrouping="false"
           placeholder="Yil"
           class="w-full"
-          inputClass="!rounded-2xl !bg-slate-50 !border-none !py-3 !px-4 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold"
+          inputClass="!rounded-xl !bg-slate-50 !border-none !py-2 !px-3 focus:!ring-4 focus:!ring-blue-500/10 transition-all font-bold text-sm"
         />
       </div>
 
-      <div v-if="showMonth" class="space-y-2 group animate-fadein">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-          <i class="pi pi-calendar text-[10px]"></i> Oy
+      <div v-if="showMonth" class="space-y-1.5 group animate-fadein">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+          <i class="pi pi-calendar text-[9px]"></i> Oy
         </label>
         <Dropdown
           v-model="filters.month"
@@ -57,13 +57,13 @@
           optionLabel="label"
           optionValue="value"
           placeholder="Oyni tanlang"
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
+          class="w-full !rounded-xl !bg-slate-50 !border-none !py-0.5 font-bold text-sm"
         />
       </div>
 
-      <div v-if="showFrom" class="space-y-2 group animate-fadein">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-          <i class="pi pi-clock text-[10px]"></i> 
+      <div v-if="showFrom" class="space-y-1.5 group animate-fadein">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+          <i class="pi pi-clock text-[9px]"></i> 
           {{ filters.period === "day" ? "Sana" : "Sana" }}
         </label>
         <Calendar
@@ -71,13 +71,13 @@
           dateFormat="yy-mm-dd"
           showIcon
           class="w-full"
-          inputClass="!rounded-2xl !bg-slate-50 !border-none !py-3 font-bold"
+          inputClass="!rounded-xl !bg-slate-50 !border-none !py-2 font-bold text-sm"
         />
       </div>
 
-      <div class="space-y-2 group">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
-          <i class="pi pi-map-marker text-[10px]"></i> Filial
+      <div class="space-y-1.5 group">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-map-marker text-[9px]"></i> Filial
         </label>
         <Dropdown
           v-model="filters.filial"
@@ -86,13 +86,13 @@
           optionValue="_id"
           showClear
           placeholder="Barcha filiallar"
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
+          class="w-full !rounded-xl !bg-slate-50 !border-none !py-0.5 font-bold text-sm"
         />
       </div>
 
-      <div class="space-y-2 group">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 group-focus-within:text-blue-500 transition-colors">
-          <i class="pi pi-box text-[10px]"></i> Mahsulot
+      <div class="space-y-1.5 group">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-blue-500 transition-colors">
+          <i class="pi pi-box text-[9px]"></i> Mahsulot
         </label>
         <Dropdown
           v-model="filters.product"
@@ -102,18 +102,18 @@
           showClear
           filter
           placeholder="Barcha mahsulotlar"
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 font-bold"
+          class="w-full !rounded-xl !bg-slate-50 !border-none !py-0.5 font-bold text-sm"
         />
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-100">
-      <div class="flex flex-wrap gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+      <div class="flex flex-wrap gap-2">
         <Button
           label="Filter qo'llash"
           icon="pi pi-check-circle"
           @click="apply"
-          class="!rounded-2xl !bg-blue-600 !border-none !px-8 !py-3 !font-black !uppercase !text-[10px] !tracking-widest !shadow-lg !shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+          class="!rounded-xl !bg-blue-600 !border-none !px-6 !py-2 !font-bold !uppercase !text-[9px] !tracking-wider !shadow-md !shadow-blue-100 hover:scale-105 active:scale-95 transition-all"
         />
         <Button
           label="Tozalash"
@@ -121,7 +121,7 @@
           severity="secondary"
           text
           @click="clear"
-          class="!rounded-2xl !font-black !uppercase !text-[10px] !tracking-widest !text-slate-400 hover:!bg-slate-50 transition-all"
+          class="!rounded-xl !font-bold !uppercase !text-[9px] !tracking-wider !text-slate-400 hover:!bg-slate-50 transition-all"
         />
       </div>
       <Button
@@ -129,7 +129,7 @@
         icon="pi pi-file-excel"
         severity="success"
         @click="$emit('exportExcel')"
-        class="!rounded-2xl !bg-emerald-500 !border-none !px-8 !py-3 !font-black !uppercase !text-[10px] !tracking-widest !shadow-lg !shadow-emerald-200 hover:scale-105 active:scale-95 transition-all"
+        class="!rounded-xl !bg-emerald-500 !border-none !px-6 !py-2 !font-bold !uppercase !text-[9px] !tracking-wider !shadow-md !shadow-emerald-100 hover:scale-105 active:scale-95 transition-all"
       />
     </div>
   </div>

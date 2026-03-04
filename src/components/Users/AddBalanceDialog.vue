@@ -4,6 +4,7 @@ import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
 import { useToast } from "primevue/usetoast";
 import api from '@/utils/api'
 
@@ -16,6 +17,7 @@ const search = ref('')
 const productDialog = ref(false)
 const isLoading = ref(false)
 const toast = useToast();
+
 /* ================= PROPS / EMITS ================= */
 const props = defineProps({
   modelValue: Boolean,
@@ -46,7 +48,6 @@ const filteredProducts = computed(() => {
 })
 
 /* ================= INITIAL DATA ================= */
-// Filiallarni yuklash
 const loadFilials = async () => {
   try {
     const res = await api.get('/filials')
@@ -58,7 +59,6 @@ const loadFilials = async () => {
 loadFilials()
 
 /* ================= WATCH ================= */
-// Filial o‘zgarganda mahsulotlarni backend’dan yuklash
 watch(selectedFilial, async (filial) => {
   basket.value = []
   products.value = []
@@ -73,7 +73,6 @@ watch(selectedFilial, async (filial) => {
   }
 })
 
-// Dialog ochilganda reset
 watch(visible, v => {
   if (v) reset()
 })
@@ -111,15 +110,14 @@ const save = async () => {
     visible.value = false
     reset()
   } catch (err) {
-       const audio = new Audio("../../../error.mp3"); // noto‘g‘ri scan uchun ovoz
-    audio.play();
-  toast.add({
-  severity: "error",
-  summary: "Xatolik",
-  detail: `${err.response?.data?.message || err.message}`,
-  life: 3000,
-});
-    console.error('Transaction error:', err)
+    const audio = new Audio("/error.mp3"); 
+    audio.play().catch(() => {});
+    toast.add({
+      severity: "error",
+      summary: "Xatolik",
+      detail: `${err.response?.data?.message || err.message}`,
+      life: 3000,
+    });
   } finally {
     isLoading.value = false
   }
@@ -143,207 +141,232 @@ const reset = () => {
     v-model:visible="visible" 
     modal 
     :closable="false"
-    class="w-[95vw] max-w-[820px] !rounded-[2.5rem] !overflow-hidden !border-none shadow-2xl"
+    class="w-[95vw] lg:w-[85vw] max-w-[800px] !rounded-3xl !overflow-hidden !border-none shadow-2xl"
+    :pt="{
+      header: { class: '!hidden' },
+      content: { class: '!p-0 !bg-slate-50' }
+    }"
   >
-    <template #header>
-      <div class="flex items-center gap-4 py-2">
-        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
-          <i class="pi pi-wallet text-xl"></i>
+    <!-- 🏢 POS MODAL HEADER -->
+    <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm">
+          <i class="pi pi-briefcase text-lg"></i>
         </div>
         <div>
-          <h3 class="text-xl font-black text-slate-900 leading-none">Balansni to‘ldirish</h3>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Omborga mahsulot kirim qilish</p>
+          <h3 class="text-[14px] font-black text-slate-900 leading-none uppercase tracking-tighter">Balansni to'ldirish</h3>
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Tranzaksiya Terminali</p>
         </div>
       </div>
-    </template>
+      
+      <div v-if="user" class="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-100">
+        <div class="text-right">
+          <p class="text-[11px] font-black text-slate-700 leading-none">{{ user.fullname }}</p>
+          <p class="text-[9px] font-bold text-blue-500 mt-1 uppercase">{{ user.autoNumber }}</p>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 border border-slate-200 uppercase">
+          {{ user.fullname?.charAt(0) }}
+        </div>
+      </div>
+      
+      <button @click="handleCancel" class="sm:hidden w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center border-none">
+        <i class="pi pi-times text-xs"></i>
+      </button>
+    </div>
 
-    <form @submit.prevent="save" class="space-y-8 pt-2">
-      <div class="space-y-3 group">
-        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 group-focus-within:text-blue-500 transition-colors">
-          <i class="pi pi-building text-[10px]"></i> Qabul qiluvchi filial
+    <!-- 📥 MAIN CONTENT -->
+    <div class="p-4 sm:p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <!-- FILIAL SELECTION -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <label class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+          <i class="pi pi-map-marker text-[10px]"></i> Qabul qiluvchi filial
         </label>
         <Dropdown
           v-model="selectedFilial"
           :options="filials"
           optionLabel="name"
-          placeholder="Filialni tanlang"
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-1 focus:!ring-2 focus:!ring-blue-500/20"
+          placeholder="FILIALNI TANLANG"
+          class="!w-full !rounded-xl !bg-slate-50 !border-slate-100 !py-0.5"
+          :pt="{
+            label: { class: '!text-[11px] !font-black !text-slate-700 !uppercase !tracking-wider' },
+            item: { class: '!text-[11px] !font-bold !py-2.5 !px-4' }
+          }"
         />
       </div>
 
-      <div class="relative">
-        <Button
-          label="Mahsulotlarni tanlash"
-          icon="pi pi-search-plus"
-          class="w-full !py-6 !rounded-[2rem] !bg-white !border-2 !border-dashed !border-slate-200 !text-slate-500 hover:!border-blue-400 hover:!text-blue-600 hover:!bg-blue-50/30 transition-all !shadow-none font-bold"
-          :disabled="!selectedFilial || products.length === 0"
+      <!-- PRODUCT ADD BUTTON -->
+      <div class="relative group">
+        <button
           @click="productDialog = true"
-        />
-        <div v-if="!selectedFilial" class="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-[2rem] flex items-center justify-center cursor-not-allowed">
-           <span class="text-[10px] font-black uppercase text-slate-400 tracking-tighter bg-white px-3 py-1 rounded-full shadow-sm">Oldin filialni tanlang</span>
+          :disabled="!selectedFilial"
+          class="w-full py-6 bg-white border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:border-blue-400 hover:bg-blue-50/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:bg-white transition-all shadow-sm">
+            <i class="pi pi-plus text-base font-bold"></i>
+          </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mahsulotlarni qo'shish</span>
+        </button>
+        <div v-if="!selectedFilial" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] rounded-2xl flex items-center justify-center pointer-events-none">
+           <span class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-tighter shadow-sm">Oldin filialni tanlang</span>
         </div>
       </div>
 
-      <div v-if="basket.length" class="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-        <div class="flex items-center justify-between px-2">
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Savatdagi mahsulotlar ({{ basket.length }})</span>
-          <Button label="Tozalash" icon="pi pi-refresh" text size="small" class="!text-[10px] !font-bold !text-rose-500" @click="basket = []" />
+      <!-- BASKET ITEMS -->
+      <div v-if="basket.length > 0" class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Savatdagi mahsulotlar ({{ basket.length }})</h4>
+          <button @click="basket = []" class="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline bg-transparent border-none cursor-pointer">Hammasini tozalash</button>
         </div>
 
-        <div v-for="(item, i) in basket" :key="item.productId" 
-          class="group/item flex items-center gap-4 p-4 bg-white rounded-[1.5rem] border border-slate-100 hover:border-blue-100 hover:shadow-lg hover:shadow-blue-50/50 transition-all duration-300">
-          
-          <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-xs group-hover/item:bg-blue-500 group-hover/item:text-white transition-colors">
-            {{ i + 1 }}
-          </div>
+        <div class="space-y-1.5 font-sans">
+          <div v-for="(item, i) in basket" :key="item.productId" 
+            class="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3 md:gap-4 hover:border-blue-200 hover:shadow-sm transition-all"
+          >
+            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 flex-shrink-0">
+              {{ i + 1 }}
+            </div>
+            
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-black text-slate-800 leading-none truncate">{{ item.name }}</p>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-[10px] font-bold text-blue-600">{{ formatAmount(item.price) }}</span>
+                <span class="text-[8px] font-black text-slate-300 uppercase tracking-tighter">Donasi</span>
+              </div>
+            </div>
 
-          <div class="flex-1">
-            <p class="font-black text-slate-800 leading-tight">{{ item.name }}</p>
-            <p class="text-xs font-bold text-emerald-600 mt-1">
-              {{ formatAmount(item.price) }} 
-              <span class="text-slate-400 font-medium">/ 1 {{ item.unit || 'birlik' }}</span>
-            </p>
-          </div>
-
-          <div class="flex flex-col items-end gap-1">
-            <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-2xl border border-slate-100 focus-within:border-blue-300 transition-all">
-              <InputNumber 
+            <div class="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+               <InputNumber 
                 v-model="item.quantity" 
-                :min="0.1"
-                :step="0.1"
-                :minFractionDigits="1"
-                :maxFractionDigits="3"
-                showButtons 
-                buttonLayout="horizontal" 
-                class="w-36 custom-number-input"
-                inputClass="!w-16 !p-0 !text-center !bg-transparent !border-none !font-black !text-slate-700"
-                incrementButtonClass="!bg-transparent !border-none !text-slate-400 hover:!text-blue-600"
-                decrementButtonClass="!bg-transparent !border-none !text-slate-400 hover:!text-rose-600"
-                incrementButtonIcon="pi pi-plus-circle"
-                decrementButtonIcon="pi pi-minus-circle"
+                :min="0.1" :step="0.1" :minFractionDigits="1" showButtons 
+                buttonLayout="horizontal"
+                class="w-24 md:w-28 !h-7"
+                inputClass="!w-full !p-0 !text-[11px] !font-black !text-center !bg-transparent !border-none"
+                incrementButtonClass="!bg-transparent !border-none !text-slate-400 hover:!text-blue-500 !p-1"
+                decrementButtonClass="!bg-transparent !border-none !text-slate-400 hover:!text-rose-500 !p-1"
+                incrementButtonIcon="pi pi-plus"
+                decrementButtonIcon="pi pi-minus"
               />
             </div>
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mr-2 italic">
-              Jami: {{ formatAmount(item.price * item.quantity) }}
-            </span>
-          </div>
 
-          <Button 
-            icon="pi pi-trash" 
-            severity="danger" 
-            text 
-            rounded
-            class="hover:!bg-rose-50 !w-10 !h-10" 
-            @click="removeItem(i)" 
-          />
-        </div>
-      </div>
+            <div class="hidden md:flex flex-col items-end min-w-[100px]">
+               <span class="text-[11px] font-black text-slate-800">{{ formatAmount(item.price * item.quantity) }}</span>
+               <span class="text-[8px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">Jami</span>
+            </div>
 
-      <div class="relative overflow-hidden p-6 rounded-[2rem] bg-slate-900 text-white shadow-xl shadow-slate-200">
-        <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500 rounded-full blur-[60px] opacity-20"></div>
-        <div class="relative flex items-center justify-between">
-          <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Umumiy hisob</p>
-            <h2 class="text-3xl font-black tracking-tighter">{{ formatAmount(totalAmount) }}</h2>
-          </div>
-          <div class="h-12 w-px bg-slate-700 mx-6 hidden md:block"></div>
-          <div class="hidden md:block">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Elementlar</p>
-            <p class="text-xl font-black text-blue-400">{{ basket.length }} turda</p>
+            <button @click="removeItem(i)" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all border-none cursor-pointer flex items-center justify-center">
+              <i class="pi pi-trash text-xs"></i>
+            </button>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-4 pt-4 border-t border-slate-100">
-        <Button 
-          type="button" 
-          label="Bekor qilish" 
-          text
-          class="flex-1 !py-4 !rounded-2xl !font-bold !text-slate-400 hover:!bg-slate-100 transition-all" 
+      <!-- EMPTY BASKET ILLUSTRATION -->
+      <div v-else class="py-12 flex flex-col items-center justify-center bg-white border border-slate-100 rounded-3xl opacity-50 border-dashed">
+         <i class="pi pi-shopping-bag text-4xl text-slate-200 mb-3"></i>
+         <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Savat hozircha bo'sh</p>
+      </div>
+    </div>
+
+    <!-- 💰 TOTAL ACCOUNT & FOOTER -->
+    <div class="bg-white border-t border-slate-200 p-4 sm:p-6 space-y-4">
+      <div class="bg-slate-900 rounded-2xl p-5 md:p-6 flex items-center justify-between shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-500 rounded-full blur-[80px] opacity-10"></div>
+        
+        <div>
+          <p class="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1.5">Tranzaksiya Summasi</p>
+          <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight">{{ formatAmount(totalAmount) }}</h2>
+        </div>
+        
+        <div class="flex items-center gap-6">
+          <div class="hidden sm:block text-right border-r border-slate-700 pr-6">
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Status</p>
+            <p class="text-[11px] font-bold text-blue-400 uppercase">{{ basket.length }} turdagi tovar</p>
+          </div>
+          <div class="flex flex-col items-end">
+             <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50"></div>
+             <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-2">Ready</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 md:gap-4">
+        <button 
           @click="handleCancel" 
-        />
-        <Button 
-          type="submit" 
-          label="Saqlash va Tasdiqlash" 
-          class="flex-[2] !py-4 !rounded-2xl !bg-emerald-600 !border-none !text-white !font-black !shadow-lg !shadow-emerald-200 hover:!scale-[1.02] active:!scale-95 transition-all"
-          :loading="isLoading" 
-          :disabled="basket.length === 0" 
-        />
+          class="flex-1 py-3.5 md:py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all border-none cursor-pointer"
+        >
+          Bekor qilish
+        </button>
+        <button 
+          @click="save"
+          :disabled="basket.length === 0 || isLoading"
+          class="flex-[2] py-3.5 md:py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100 border-none cursor-pointer flex items-center justify-center gap-2"
+        >
+          <i v-if="isLoading" class="pi pi-spin pi-spinner text-xs"></i>
+          <span>Tasdiqlash va Saqlash</span>
+        </button>
       </div>
-    </form>
+    </div>
   </Dialog>
 
+  <!-- MAHULOT TANLASH DIALOGI -->
   <Dialog 
     v-model:visible="productDialog" 
     modal 
-    header="Mahsulotlarni qidirish" 
-    class="w-[90vw] max-w-[600px] !rounded-[2.5rem]"
+    header="Mahsulotni tanlang" 
+    class="w-[90vw] max-w-[500px] !rounded-3xl !border-none !shadow-2xl"
+    :pt="{
+      header: { class: '!p-5 !bg-white border-b border-slate-100' },
+      headerTitle: { class: '!text-[13px] !font-black !text-slate-800 !uppercase !tracking-widest' },
+      content: { class: '!p-3 !bg-slate-50' }
+    }"
   >
-    <div class="space-y-4">
-      <div class="relative group">
-        <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+    <div class="flex flex-col gap-3">
+      <div class="relative">
+        <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
         <InputText 
           v-model="search" 
-          placeholder="Mahsulot nomi bo‘yicha filtr..." 
-          class="w-full !rounded-2xl !bg-slate-50 !border-none !py-4 !pl-12 focus:!ring-2 focus:!ring-blue-500/10" 
+          placeholder="MAHSULOT NOMI..." 
+          class="!w-full !rounded-xl !bg-white !border-slate-200 !py-3 !pl-11 !text-[11px] !font-bold" 
         />
       </div>
 
-      <div class="max-h-96 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+      <div class="max-h-[350px] overflow-y-auto custom-scrollbar space-y-1.5 p-1">
         <div v-for="p in filteredProducts" :key="p._id" 
           @click="addToBasket(p)"
-          class="flex items-center justify-between p-4 rounded-2xl border border-slate-50 hover:bg-blue-50 hover:border-blue-100 cursor-pointer transition-all group"
+          class="flex items-center justify-between p-3 bg-white hover:bg-blue-50 border border-slate-100 hover:border-blue-200 rounded-xl cursor-pointer transition-all group"
         >
-          <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors border border-slate-100">
-              <i class="pi pi-box"></i>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:bg-white transition-all">
+              <i class="pi pi-box text-xs"></i>
             </div>
             <div>
-              <p class="font-bold text-slate-700 leading-none mb-1">{{ p.name }}</p>
-              <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{{ formatAmount(p.price) }}</p>
+              <p class="text-[11px] font-black text-slate-700 leading-none truncate max-w-[200px]">{{ p.name }}</p>
+              <p class="text-[9px] font-bold text-emerald-500 mt-1 uppercase">{{ formatAmount(p.price) }}</p>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-             <span class="text-[10px] font-bold text-slate-300 group-hover:text-blue-400 uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">Savatga qo'shish</span>
-             <i class="pi pi-plus-circle text-slate-200 group-hover:text-blue-500 transition-colors text-xl"></i>
-          </div>
+          <i class="pi pi-plus-circle text-lg text-slate-200 group-hover:text-blue-500 transition-colors"></i>
         </div>
 
-        <div v-if="filteredProducts.length === 0" class="text-center py-12">
-          <i class="pi pi-search-minus text-4xl text-slate-200 mb-3"></i>
-          <p class="text-slate-400 font-bold tracking-tight">Qidiruv bo'yicha hech narsa topilmadi</p>
+        <div v-if="filteredProducts.length === 0" class="text-center py-10">
+          <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Hech narsa topilmadi</p>
         </div>
       </div>
     </div>
   </Dialog>
 </template>
 
-<style scoped>
-/* Scrollbar styling */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+<script>
+export default {
+    name: 'AddBalanceDialog'
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
+</script>
 
-/* Dialog and inputs */
-:deep(.p-dialog-header) {
-  padding: 2rem 2rem 1rem;
-  background: white;
-}
-:deep(.p-dialog-content) {
-  padding: 0 2rem 2rem;
-  background: white;
-}
-:deep(.custom-number-input .p-inputnumber-button) {
-  width: 2.2rem;
-}
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
 :deep(.p-inputnumber-input) {
-  font-family: inherit;
+  padding: 0 !important;
 }
 </style>

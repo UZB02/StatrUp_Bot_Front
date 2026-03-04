@@ -1,23 +1,23 @@
 <template>
-  <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-50 p-8 transition-all duration-300">
+  <div class="bg-white rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-50 p-5 transition-all duration-300">
     
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
-          <i class="pi pi-chart-bar text-xl"></i>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
+          <i class="pi pi-chart-bar text-lg"></i>
         </div>
         <div>
-          <h3 class="text-xl font-black text-slate-800 tracking-tight">Savdo statistikasi</h3>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Davrlar kesimidagi tahlil</p>
+          <h3 class="text-lg font-black text-slate-800 tracking-tight">Savdo statistikasi</h3>
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Davrlar kesimidagi tahlil</p>
         </div>
       </div>
 
-      <div v-if="hasData && !loading" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full">
-        <span class="relative flex h-2 w-2">
+      <div v-if="hasData && !loading" class="flex items-center gap-2 px-2.5 py-1 bg-emerald-50 rounded-full">
+        <span class="relative flex h-1.5 w-1.5">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
         </span>
-        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Jonli</span>
+        <span class="text-[9px] font-black text-emerald-600 uppercase tracking-tighter">Jonli</span>
       </div>
     </div>
 

@@ -1,172 +1,157 @@
 <template>
-  <div class="w-full space-y-6">
+  <div class="h-full flex flex-col bg-white overflow-hidden">
     <DataTable
       :value="users"
       :loading="loading"
       paginator
-      :rows="10"
-      responsiveLayout="stack"
-      breakpoint="960px"
-      class="p-datatable-custom overflow-hidden rounded-[2.5rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50"
+      :rows="20"
+      responsiveLayout="scroll"
+      class="p-datatable-pos flex-1 flex flex-col overflow-hidden"
       rowHover
+      dataKey="_id"
+      v-model:selection="selection"
+      selectionMode="single"
+      @row-click="onRowClick"
     >
-      <Column header="Foydalanuvchi" class="min-w-[200px]">
-        <template #body="{ data }">
-          <div class="flex items-center gap-4 py-1">
-            <div class="relative group">
-              <UserAvatar :name="data.fullname" class="!w-12 !h-12 border-2 border-white shadow-md group-hover:scale-110 transition-transform" />
-              <div v-if="data.balance > 0" class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></div>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-sm font-black text-slate-800 leading-tight">{{ data.fullname }}</span>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">ID: {{ data._id?.slice(-6).toUpperCase() }}</span>
-            </div>
-          </div>
-        </template>
-      </Column>
+      <template #empty>
+        <div class="p-12 text-center flex flex-col items-center">
+          <i class="pi pi-users text-4xl text-slate-100 mb-3"></i>
+          <p class="text-slate-400 font-bold text-xs uppercase">Mijozlar ro'yxati bo'sh</p>
+        </div>
+      </template>
 
-      <Column header="Aloqa" class="min-w-[150px]">
+      <Column header="Mijoz (Ism / Tel)" class="w-[280px]">
         <template #body="{ data }">
-          <div class="flex items-center gap-2 text-slate-600">
-            <i class="pi pi-phone text-[10px] text-slate-300"></i>
-            <span class="text-xs font-bold tracking-tight">{{ data.phone }}</span>
-          </div>
-        </template>
-      </Column>
-
-      <Column header="Avtomobil">
-        <template #body="{ data }">
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-xl shadow-sm">
-            <i class="pi pi-car text-[10px] opacity-60"></i>
-            <span class="text-[11px] font-black uppercase tracking-wider">{{ data.autoNumber }}</span>
-          </div>
-        </template>
-      </Column>
-
-      <Column header="Balans">
-        <template #body="{ data }">
-          <div class="flex flex-col items-start gap-1">
-            <div :class="[
-              'px-3 py-1 rounded-full text-[11px] font-black shadow-sm border',
-              data.balance >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'
-            ]">
-              {{ formatCurrency(data.balance) }}
+          <div class="flex items-center gap-3 py-0.5">
+            <UserAvatar :name="data.fullname" class="!w-8 !h-8 border border-slate-100 shadow-sm" />
+            <div class="flex flex-col min-w-0">
+              <span class="text-[12px] font-black text-slate-800 leading-tight truncate">{{ data.fullname }}</span>
+              <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">{{ data.phone }}</span>
             </div>
           </div>
         </template>
       </Column>
 
-      <Column header="Boshqaruv" headerClass="text-center" >
+      <Column header="Avtomobil" class="w-[140px]">
         <template #body="{ data }">
-          <div class="flex items-center gap-3 justify-end pr-2">
-            <div class="flex items-center bg-slate-50 p-1.5 rounded-2xl border border-slate-100 gap-1">
-              <Button 
-                v-tooltip.top="'Balans qo‘shish'" 
-                icon="pi pi-plus" 
-                @click="openAdd(data)"
-                class="!w-9 !h-9 !rounded-xl !bg-emerald-500 !border-none !text-white hover:!scale-105 active:!scale-95 transition-all" 
-              />
-              <Button 
-                v-tooltip.top="'Balans sarflash'" 
-                icon="pi pi-minus" 
-                @click="openSpend(data)"
-                class="!w-9 !h-9 !rounded-xl !bg-rose-500 !border-none !text-white hover:!scale-105 active:!scale-95 transition-all" 
-              />
-            </div>
+          <div class="inline-flex items-center gap-2 px-2 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200">
+            <i class="pi pi-car text-[8px] text-slate-400"></i>
+            <span class="text-[10px] font-black uppercase tracking-wider">{{ data.autoNumber }}</span>
+          </div>
+        </template>
+      </Column>
 
-            <div class="h-6 w-px bg-slate-200 mx-1"></div>
+      <Column header="Balans" class="w-[150px]">
+        <template #body="{ data }">
+          <div :class="[
+            'inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-black border',
+            data.balance >= 0 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'
+          ]">
+            {{ formatCurrency(data.balance) }}
+          </div>
+        </template>
+      </Column>
 
-            <Button 
-              icon="pi pi-pencil" 
-              @click="$emit('edit', data)"
-              class="!w-9 !h-9 !rounded-xl !bg-white !text-amber-500 !border !border-amber-100 hover:!bg-amber-50 transition-all" 
-            />
-            <Button 
-              icon="pi pi-trash" 
-              @click="$emit('delete', data)"
-              class="!w-9 !h-9 !rounded-xl !bg-white !text-rose-400 !border !border-rose-100 hover:!bg-rose-50 transition-all" 
-            />
+      <Column header="Status" class="w-[100px]">
+        <template #body="{ data }">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full" :class="data.balance > 0 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-slate-300'"></span>
+            <span class="text-[8px] font-black uppercase tracking-widest text-slate-400">
+              {{ data.balance > 0 ? 'Active' : 'N/A' }}
+            </span>
           </div>
         </template>
       </Column>
     </DataTable>
-
-    <AddBalanceDialog v-model="addDialog" :user="selectedUser" @saved="$emit('updated')" />
-    <SpendBalanceDialog v-model="spendDialog" :user="selectedUser" @saved="$emit('updated')" />
   </div>
 </template>
+
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import Button from "primevue/button";
-
 import UserAvatar from "./UserAvatar.vue";
-import AddBalanceDialog from "./AddBalanceDialog.vue";
-import SpendBalanceDialog from "./SpendBalanceDialog.vue";
 
-defineProps({
+const props = defineProps({
   users: Array,
-  loading: Boolean
+  loading: Boolean,
+  selectedId: String
 });
 
-defineEmits(["edit", "delete", "updated"]);
+const emit = defineEmits(["edit", "delete", "updated", "select"]);
 
-const selectedUser = ref(null);
-const addDialog = ref(false);
-const spendDialog = ref(false);
+const selection = ref(null);
 
-const openAdd = (user) => {
-  selectedUser.value = user;
-  addDialog.value = true;
+const onRowClick = (event) => {
+  emit('select', event.data);
 };
 
-const openSpend = (user) => {
-  selectedUser.value = user;
-  spendDialog.value = true;
-};
+// Sync selection if selectedId changes
+watch(() => props.selectedId, (newId) => {
+  if (!newId) selection.value = null;
+  else if (props.users) {
+    selection.value = props.users.find(u => u._id === newId);
+  }
+}, { immediate: true });
 </script>
+
 <style scoped>
-/* PrimeVue DataTable custom styling */
-:deep(.p-datatable-custom) {
+:deep(.p-datatable-pos) {
   border: none !important;
 }
 
-:deep(.p-datatable-custom .p-datatable-thead > tr > th) {
+:deep(.p-datatable-pos .p-datatable-thead > tr > th) {
   background: #f8fafc;
   color: #94a3b8;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 1.5rem 1rem;
-  border-bottom: 2px solid #f1f5f9;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-:deep(.p-datatable-custom .p-datatable-tbody > tr) {
-  transition: all 0.2s ease;
+:deep(.p-datatable-pos .p-datatable-tbody > tr) {
+  transition: all 0.1s ease;
+  cursor: pointer;
 }
 
-:deep(.p-datatable-custom .p-datatable-tbody > tr > td) {
-  padding: 1.25rem 1rem;
+:deep(.p-datatable-pos .p-datatable-tbody > tr > td) {
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid #f8fafc;
 }
 
-:deep(.p-datatable-custom .p-datatable-tbody > tr:hover) {
-  background: #f1f5f9/30 !important;
+:deep(.p-datatable-pos .p-datatable-tbody > tr.p-highlight) {
+  background: #eff6ff !important;
+  border-left: 3px solid #3b82f6 !important;
+}
+
+:deep(.p-datatable-pos .p-datatable-tbody > tr.p-highlight td) {
+  color: #1e3a8a !important;
+}
+
+:deep(.p-datatable-pos .p-datatable-tbody > tr:hover:not(.p-highlight)) {
+  background: #f1f5f9 !important;
 }
 
 :deep(.p-paginator) {
-  background: transparent !important;
-  border: none !important;
-  padding: 1.5rem !important;
+  background: #f8fafc !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding: 0.35rem !important;
+}
+
+:deep(.p-paginator .p-paginator-pages .p-paginator-page) {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 :deep(.p-paginator .p-paginator-pages .p-paginator-page.p-highlight) {
   background: #3b82f6 !important;
   color: white;
-  border-radius: 12px;
 }
 </style>

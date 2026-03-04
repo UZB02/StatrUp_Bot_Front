@@ -6,19 +6,19 @@ import { useAuth } from "@/composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
-const { hasRole,admin, logout } = useAuth();
+const { hasRole, hasPermission, admin, logout } = useAuth();
 
 const props = defineProps({ collapsed: { type: Boolean, default: true } });
 const emit = defineEmits(["toggle"]);
 
 const menuItems = ref([
-  { label: "Dashboard", icon: "pi pi-home", to: "/", roles: ["superadmin"] },
-  { label: "Adminlar", icon: "pi pi-users", to: "/admins", roles: ["superadmin"] },
-  { label: "Filiallar", icon: "pi pi-sitemap", to: "/filials", roles: ["superadmin"] },
-  { label: "Mahsulotlar", icon: "pi pi-database", to: "/products", roles: ["superadmin"] },
-  { label: "Mijozlar", icon: "pi pi-address-book", to: "/users", roles: ["admin", "superadmin"] },
-  { label: "Marketing", icon: "pi pi-wave-pulse", to: "/marketing", roles: ["superadmin"] },
-  { label: "Vakansiyalar", icon: "pi pi-briefcase", to: "/vacancies", roles: ["superadmin"] },
+  { label: "Dashboard", icon: "pi pi-home", to: "/", roles: ["admin", "superadmin"], permission: "dashboard" },
+  { label: "Adminlar", icon: "pi pi-users", to: "/admins", roles: ["superadmin"], permission: "admins" },
+  { label: "Filiallar", icon: "pi pi-sitemap", to: "/filials", roles: ["admin", "superadmin"], permission: "filials" },
+  { label: "Mahsulotlar", icon: "pi pi-database", to: "/products", roles: ["admin", "superadmin"], permission: "products" },
+  { label: "Mijozlar", icon: "pi pi-address-book", to: "/users", roles: ["admin", "superadmin"], permission: "users" },
+  { label: "Marketing", icon: "pi pi-wave-pulse", to: "/marketing", roles: ["admin", "superadmin"], permission: "marketing" },
+  { label: "Vakansiyalar", icon: "pi pi-briefcase", to: "/vacancies", roles: ["admin", "superadmin"], permission: "vacancies" },
 ]);
 
 const isDesktop = ref(window.innerWidth >= 768);
@@ -42,12 +42,12 @@ function navigate(path) {
       collapsed ? '-translate-x-full md:translate-x-0 md:w-20' : 'translate-x-0 w-64'
     ]"
   >
-    <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between h-14 px-4 border-b border-gray-200 bg-white">
       <div v-if="!collapsed" class="flex items-center gap-2 overflow-hidden">
         <div class="w-8 h-8  rounded-lg flex items-center justify-center shrink-0">
             <span class="text-white font-bold"><img src="../../../logo (2).png" alt="Logo" class="rounded-full"></span>
         </div>
-        <span class="font-bold text-gray-800 text-xl tracking-tight">Bonly.uz</span>
+        <span class="font-bold text-gray-800 text-lg tracking-tight">Bonly.uz</span>
       </div>
       <div v-else class="w-full flex justify-center">
        <div class="w-8 h-8  rounded-lg flex items-center justify-center shrink-0">
@@ -67,11 +67,11 @@ function navigate(path) {
       <ul class="space-y-1 px-3">
         <li v-for="(item, index) in menuItems" :key="index">
           <div
-            v-if="item.roles && hasRole(item.roles)"
+            v-if="item.roles && hasRole(item.roles) && hasPermission(item.permission)"
             @click="navigate(item.to)"
             v-tooltip.right="collapsed ? item.label : null"
             :class="[
-              'group flex items-center cursor-pointer p-3 rounded-xl transition-all duration-200 relative',
+              'group flex items-center cursor-pointer p-2.5 rounded-lg transition-all duration-200 relative',
               route.path === item.to 
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-200' 
                 : 'text-slate-600 hover:bg-blue-50 hover:text-blue-600'

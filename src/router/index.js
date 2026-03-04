@@ -6,12 +6,13 @@ import HomeView from '../views/HomeView.vue'
 const routes = [
   {
     path: '/',
-    name: 'Asosiy Sahifa',
+    name: 'home',
     component: HomeView,
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'dashboard'
     },
   },
   {
@@ -21,7 +22,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['superadmin'],
+      permission: 'admins'
     },
   },
   {
@@ -31,7 +33,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['superadmin'],
+      permission: 'admins'
     },
   },
   {
@@ -41,7 +44,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['superadmin'],
+      permission: 'admins'
     },
   },
   {
@@ -51,7 +55,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'products'
     },
   },
   {
@@ -61,7 +66,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'filials'
     },
   },
   {
@@ -71,7 +77,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'filials'
     },
   },
   {
@@ -81,7 +88,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'marketing'
     },
   },
   {
@@ -91,7 +99,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'vacancies'
     },
   },
   {
@@ -101,7 +110,8 @@ const routes = [
     meta: {
       layout: AppLayout,
       requiresAuth: true,
-      roles: ['admin', 'superadmin'], // 🔐 ikkalasi ham kira oladi
+      roles: ['admin', 'superadmin'],
+      permission: 'users'
     },
   },
   {
@@ -115,20 +125,20 @@ const routes = [
   },
 
   // ❌ ruxsat yo‘q sahifa
-  // {
-  //   path: '/403',
-  //   name: 'Forbidden',
-  //   component: () => import('../views/Forbidden.vue'),
-  //   meta: { layout: AuthLayout },
-  // },
+  {
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('../views/Forbidden.vue'),
+    meta: { layout: AuthLayout },
+  },
 
   // ❌ topilmadi
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   name: 'NotFound',
-  //   component: () => import('../views/NotFound.vue'),
-  //   meta: { layout: AuthLayout },
-  // },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFound.vue'),
+    meta: { layout: AuthLayout },
+  },
 ]
 
 const router = createRouter({
@@ -143,9 +153,12 @@ router.beforeEach((to, from, next) => {
   const token = sessionStorage.getItem('adminToken')
   const adminRaw = sessionStorage.getItem('admin')
 
-  // 🔓 Guest sahifa (login)
-  if (to.meta.guest && token) {
-    return next({ name: 'home' })
+  // 🔓 Guest sahifa (login) - Agar token bo'lsa, ichkariga yo'naltirish
+  if (to.meta.guest) {
+    if (token) {
+      return next('/')
+    }
+    return next()
   }
 
   // 🔐 Auth talab qilinadi
@@ -154,15 +167,32 @@ router.beforeEach((to, from, next) => {
   }
 
   // 🎭 Role tekshiruvi
-  if (to.meta.roles) {
+  if (to.meta.roles && token) {
     if (!adminRaw) {
       return next({ name: 'Login' })
     }
 
-    const admin = JSON.parse(adminRaw)
+    try {
+      const admin = JSON.parse(adminRaw)
 
-    if (!to.meta.roles.includes(admin.role)) {
-      return next({ name: 'Forbidden' })
+      // Superadmin hammasiga kira oladi
+      if (admin.role === 'superadmin') {
+        return next()
+      }
+
+      // Role tekshiruvi
+      if (!to.meta.roles.includes(admin.role)) {
+        return next({ name: 'Forbidden' })
+      }
+
+      // Permission tekshiruvi (faqat adminlar uchun)
+      if (to.meta.permission && (!admin.permissions || !admin.permissions.includes(to.meta.permission))) {
+        return next({ name: 'Forbidden' })
+      }
+
+    } catch (e) {
+      sessionStorage.clear()
+      return next({ name: 'Login' })
     }
   }
 
